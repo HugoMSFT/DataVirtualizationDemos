@@ -15,13 +15,16 @@
 -- SELECT INTO creates a new table from the query results.
 -- This is the fastest way to land the full dataset into your database.
 
+DROP TABLE IF EXISTS dbo.SeattleSafety;
+GO
+
 SELECT *
 INTO dbo.SeattleSafety
 FROM OPENROWSET(
     BULK 'abs://citydatacontainer@azureopendatastorage.blob.core.windows.net/Safety/Release/city=Seattle/*.parquet',
     FORMAT = 'PARQUET'
 ) AS [SeattleSafety];
-GO
+GO -- 1,875,815 (35s)
 
 -- Verify the ingestion
 SELECT COUNT(*) AS total_rows FROM dbo.SeattleSafety;
@@ -35,13 +38,15 @@ GO
 -- =============================================================================
 
 -- Add a clustered index on dateTime for time-based queries
-CREATE CLUSTERED INDEX CIX_SeattleSafety_DateTime 
-    ON dbo.SeattleSafety ([dateTime]);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'CIX_SeattleSafety_DateTime' AND object_id = OBJECT_ID('dbo.SeattleSafety'))
+    CREATE CLUSTERED INDEX CIX_SeattleSafety_DateTime 
+        ON dbo.SeattleSafety ([dateTime]);
 GO
 
 -- Add a nonclustered index on category for filtering by incident type
-CREATE NONCLUSTERED INDEX IX_SeattleSafety_Category 
-    ON dbo.SeattleSafety ([category]);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_SeattleSafety_Category' AND object_id = OBJECT_ID('dbo.SeattleSafety'))
+    CREATE NONCLUSTERED INDEX IX_SeattleSafety_Category 
+        ON dbo.SeattleSafety ([category]);
 GO
 
 -- =============================================================================
