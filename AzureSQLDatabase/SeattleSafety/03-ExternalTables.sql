@@ -39,33 +39,29 @@ END
 GO
 
 -- =============================================================================
--- Step 3: Create a schema for external objects (keeps things tidy)
--- =============================================================================
-
-IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'ext')
-    EXEC('CREATE SCHEMA ext');
-GO
-
--- =============================================================================
--- Step 4: Create the External Table
+-- Step 3: Create the External Table
 -- =============================================================================
 
 -- The external table looks and feels like a regular table.
 -- Users can query it with plain SELECT — no OPENROWSET, no URLs.
 
-IF OBJECT_ID('ext.SeattleSafety') IS NOT NULL
-    DROP EXTERNAL TABLE ext.SeattleSafety;
+IF OBJECT_ID('dbo.SeattleSafety_External') IS NOT NULL
+    DROP EXTERNAL TABLE dbo.SeattleSafety_External;
 GO
 
-CREATE EXTERNAL TABLE ext.SeattleSafety
+CREATE EXTERNAL TABLE dbo.SeattleSafety_External
 (
-    [address]      VARCHAR(500),
-    [category]     VARCHAR(100),
-    [dataSubtype]  VARCHAR(50),
-    [dataType]     VARCHAR(50),
-    [dateTime]     DATETIME2,
-    [latitude]     FLOAT,
-    [longitude]    FLOAT
+    [dataType]           VARCHAR(50),
+    [dataSubtype]        VARCHAR(50),
+    [dateTime]           DATETIME2,
+    [category]           VARCHAR(100),
+    [subcategory]        VARCHAR(200),
+    [status]             VARCHAR(100),
+    [address]            VARCHAR(500),
+    [latitude]           FLOAT,
+    [longitude]          FLOAT,
+    [source]             VARCHAR(200),
+    [extendedProperties] VARCHAR(4000)
 )
 WITH (
     DATA_SOURCE    = SeattleSafetyDS,
@@ -74,8 +70,19 @@ WITH (
 );
 GO
 
+-- Create statistics on commonly queried columns to improve query plans.
+-- Without stats, the optimizer assumes default cardinality estimates which
+-- can lead to poor memory grants and suboptimal join strategies.
+-- Note: FULLSCAN is not supported on all external table configurations;
+-- use SAMPLE to scan a percentage of the remote data instead.
+
+CREATE STATISTICS ST_SeattleSafety_DateTime ON dbo.SeattleSafety_External ([dateTime]) WITH SAMPLE 50 PERCENT;
+CREATE STATISTICS ST_SeattleSafety_Category ON dbo.SeattleSafety_External ([category]) WITH SAMPLE 50 PERCENT;
+CREATE STATISTICS ST_SeattleSafety_Address  ON dbo.SeattleSafety_External ([address])  WITH SAMPLE 50 PERCENT;
+GO
+
 -- =============================================================================
--- Step 5: Query the external table — just like a regular table
+-- Step 4: Query the external table — just like a regular table
 -- =============================================================================
 
 SELECT TOP 50
@@ -84,12 +91,12 @@ SELECT TOP 50
     address,
     latitude,
     longitude
-FROM ext.SeattleSafety
+FROM dbo.SeattleSafety_External
 ORDER BY dateTime DESC;
 GO
 
 -- =============================================================================
--- Step 6: Hybrid query — join external data with a local lookup table
+-- Step 5: Hybrid query — join external data with a local lookup table
 -- =============================================================================
 
 -- Create a small local reference table
@@ -124,14 +131,14 @@ SELECT TOP 50
     p.severity,
     s.latitude,
     s.longitude
-FROM ext.SeattleSafety AS s
+FROM dbo.SeattleSafety_External AS s
 LEFT JOIN dbo.CategoryPriority AS p
     ON s.category = p.category
 ORDER BY s.dateTime DESC;
 GO
 
 -- =============================================================================
--- Step 7: Schema introspection on external objects
+-- Step 6: Schema introspection on external objects
 -- =============================================================================
 
 -- See the columns defined in the external table
@@ -142,7 +149,7 @@ SELECT
     t.name AS data_type
 FROM sys.external_table_columns AS c
 JOIN sys.types AS t ON c.user_type_id = t.user_type_id
-WHERE c.object_id = OBJECT_ID('ext.SeattleSafety')
+WHERE c.object_id = OBJECT_ID('dbo.SeattleSafety_External')
 ORDER BY c.column_id;
 GO
 
@@ -160,8 +167,8 @@ GO
 -- =============================================================================
 -- Cleanup (optional)
 -- =============================================================================
--- DROP EXTERNAL TABLE ext.SeattleSafety;
--- DROP EXTERNAL FILE FORMAT ParquetFileFormat;
--- DROP EXTERNAL DATA SOURCE SeattleSafetyDS;
--- DROP TABLE IF EXISTS dbo.CategoryPriority;
--- GO
+DROP EXTERNAL TABLE dbo.SeattleSafety_External;
+DROP EXTERNAL FILE FORMAT ParquetFileFormat;
+DROP EXTERNAL DATA SOURCE SeattleSafetyDS;
+DROP TABLE IF EXISTS dbo.CategoryPriority;
+GO

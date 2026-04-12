@@ -6,7 +6,7 @@
 -- =============================================================================
 -- This script shows advanced capabilities you can use on virtualized data:
 -- geospatial analysis and execution plan / DMV introspection.
--- Prerequisite: Run 03-ExternalTables.sql (creates ext.SeattleSafety).
+-- Prerequisite: Run 03-ExternalTables.sql (creates dbo.SeattleSafety_External).
 -- =============================================================================
 
 -- =============================================================================
@@ -42,7 +42,7 @@ SELECT TOP 20
     category,
     address,
     geography::Point(latitude, longitude, 4326) AS Location
-FROM ext.SeattleSafety
+FROM dbo.SeattleSafety_External
 WHERE latitude IS NOT NULL
   AND longitude IS NOT NULL;
 GO
@@ -52,7 +52,7 @@ GO
 SELECT
     category,
     COUNT(*) AS IncidentCount
-FROM ext.SeattleSafety
+FROM dbo.SeattleSafety_External
 WHERE latitude  BETWEEN 47.55 AND 47.65
   AND longitude BETWEEN -122.35 AND -122.25
 GROUP BY category
@@ -68,7 +68,7 @@ SELECT TOP 20
     geography::Point(latitude, longitude, 4326).STDistance(
         geography::Point(47.6205, -122.3493, 4326)
     ) / 1000.0 AS distance_km
-FROM ext.SeattleSafety
+FROM dbo.SeattleSafety_External
 WHERE latitude IS NOT NULL
   AND longitude IS NOT NULL
 ORDER BY distance_km ASC;
@@ -108,5 +108,4 @@ BEGIN
     FROM sys.dm_exec_external_work
     ORDER BY start_time DESC;
 END
-GO
 GO
