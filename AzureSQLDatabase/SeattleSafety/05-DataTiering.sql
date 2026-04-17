@@ -1,8 +1,8 @@
 -- =============================================================================
 -- Demo: Data Tiering — Hot/Cold Pattern with OPENROWSET & External Tables
--- Dataset: Seattle Safety (Fire Department 911 Dispatches)
--- Storage: https://publiclake.blob.core.windows.net/seattlesafety
--- Platform: Azure SQL Database (with Data Virtualization enabled)
+-- Dataset: Seattle Safety (Fire Department 911 Dispatches), 2003–2023
+-- Storage: https://publiclake.blob.core.windows.net/seattlesafety (public)
+-- Platform: Azure SQL Database (Data Virtualization enabled by default)
 -- =============================================================================
 --
 -- This script demonstrates a data tiering strategy:
@@ -25,10 +25,9 @@
 --
 -- A unified view (dbo.vw_SeattleSafety_All) transparently combines both tiers.
 --
--- Prerequisites:
---   • Data Virtualization enabled on the Azure SQL Database.
---   • The dbo.SeattleSafety table from 02-IngestData.sql (used to load hot data).
---   • The SeattleSafetyTieringDS data source pointing to the blob storage.
+-- This script is STANDALONE — it does not depend on 02-IngestData.sql.
+-- Hot data is pulled directly from the partitioned source via folder-filtered
+-- OPENROWSET.
 --
 -- =============================================================================
 
@@ -38,15 +37,12 @@
 -- Drop in reverse dependency order: views first, then tables, then external
 -- objects. This ensures no errors from dependent objects.
 
-DROP VIEW IF EXISTS dbo.vw_SeattleSafety_All;
+DROP VIEW  IF EXISTS dbo.vw_SeattleSafety_All;
 GO
-
-DROP VIEW IF EXISTS dbo.vw_SeattleSafety_Cold;
+DROP VIEW  IF EXISTS dbo.vw_SeattleSafety_Cold;
 GO
-
 DROP TABLE IF EXISTS dbo.SeattleSafety_Hot;
 GO
-
 IF OBJECT_ID('dbo.SeattleSafety_Cold') IS NOT NULL
     DROP EXTERNAL TABLE dbo.SeattleSafety_Cold;
 GO
@@ -56,8 +52,8 @@ GO
 -- =============================================================================
 
 -- The external data source encapsulates the blob storage location.
--- Use a separate name so this demo doesn't conflict with SeattleSafetyDS
--- from 03-ExternalTables.sql (which points to Azure Open Datasets).
+-- A separate name keeps this demo independent from SeattleSafetyDS
+-- in 03-ExternalTables.sql (which points to Azure Open Datasets).
 
 IF NOT EXISTS (SELECT 1 FROM sys.external_data_sources WHERE name = 'SeattleSafetyTieringDS')
 BEGIN
@@ -68,8 +64,7 @@ BEGIN
 END
 GO
 
--- Parquet file format — reused across all external tables and OPENROWSET calls.
-
+-- Parquet file format — reused across external tables and OPENROWSET calls.
 IF NOT EXISTS (SELECT 1 FROM sys.external_file_formats WHERE name = 'ParquetFileFormat')
 BEGIN
     CREATE EXTERNAL FILE FORMAT ParquetFileFormat
@@ -82,29 +77,32 @@ GO
 -- =============================================================================
 -- Step 2: Ingest HOT data (2023) into a local table
 -- =============================================================================
-
--- Pull 2023 incidents from the ingested dbo.SeattleSafety table (from script 02)
--- into a dedicated hot-tier table. This gives us full SQL engine capabilities:
--- indexes, statistics, and local I/O — no network round-trips.
+-- Pull the latest year directly from the partitioned source by targeting the
+-- year=2023 folder with OPENROWSET — no dependency on 02-IngestData.sql.
+-- Because the BULK path points at a single year folder, the engine only
+-- reads that folder's Parquet files.
 
 SELECT *
 INTO   dbo.SeattleSafety_Hot
-FROM   dbo.SeattleSafety
-WHERE  YEAR(dateTime) = 2023;
+FROM   OPENROWSET(
+           BULK        'year=2023/*.parquet',
+           FORMAT      = 'PARQUET',
+           DATA_SOURCE = 'SeattleSafetyTieringDS'
+       ) AS [src];
 GO
 
--- Add a clustered index on dateTime for time-range queries.
-CREATE CLUSTERED INDEX CIX_Hot_DateTime
+-- Clustered index on dateTime for time-range queries.
+CREATE CLUSTERED INDEX CIX_SeattleSafety_Hot_DateTime
     ON dbo.SeattleSafety_Hot ([dateTime]);
 GO
 
--- Add a nonclustered index on category for filtering by incident type.
-CREATE NONCLUSTERED INDEX IX_Hot_Category
+-- Nonclustered index on category for filtering by incident type.
+CREATE NONCLUSTERED INDEX IX_SeattleSafety_Hot_Category
     ON dbo.SeattleSafety_Hot ([category]);
 GO
 
--- Verify: confirm we got only 2023 data and check the row count.
-SELECT 
+-- Verify: only 2023 data, check the row count.
+SELECT
     DATEPART(YEAR, dateTime) AS [Year],
     COUNT(*)                 AS row_count
 FROM   dbo.SeattleSafety_Hot
@@ -115,13 +113,12 @@ GO
 -- =============================================================================
 -- Step 3: Create COLD tier — external table + OPENROWSET view
 -- =============================================================================
-
 -- We create TWO objects for the cold tier, each serving a different purpose:
 --
 --   1. External table (dbo.SeattleSafety_Cold)
 --      • Supports CREATE STATISTICS for better optimizer estimates.
 --      • Queryable like a regular table: SELECT * FROM dbo.SeattleSafety_Cold
---      • Cannot use filepath() in views (alias restrictions).
+--      • Cannot use filepath() inside views (alias restrictions).
 --
 --   2. OPENROWSET view (dbo.vw_SeattleSafety_Cold)
 --      • Exposes filepath(1) as [year_folder] for partition elimination.
@@ -169,23 +166,21 @@ GO
 
 -- Quick verification — compare row counts from both cold objects.
 -- They point to the same data, so counts should match.
-SELECT COUNT(*) AS cold_rows_via_view     FROM dbo.vw_SeattleSafety_Cold;
+SELECT COUNT(*) AS cold_rows_via_view      FROM dbo.vw_SeattleSafety_Cold;
 GO
-
 SELECT COUNT(*) AS cold_rows_via_ext_table FROM dbo.SeattleSafety_Cold;
 GO
 
 -- =============================================================================
 -- Step 4: Create a unified view — seamless access across tiers
 -- =============================================================================
-
 -- This view is the consumer-facing interface. End users and applications
 -- query dbo.vw_SeattleSafety_All without knowing (or caring) whether the
 -- data comes from a local table or remote blob storage.
 --
 -- The [tier] column reveals the data source:
---   ‘Hot’       → local table (dbo.SeattleSafety_Hot), indexed, fast.
---   ‘Cold-YYYY’ → remote Parquet via OPENROWSET, year-partitioned.
+--   'Hot'       → local table (dbo.SeattleSafety_Hot), indexed, fast.
+--   'Cold-YYYY' → remote Parquet via OPENROWSET, year-partitioned.
 
 CREATE OR ALTER VIEW dbo.vw_SeattleSafety_All
 AS
@@ -207,10 +202,9 @@ GO
 -- =============================================================================
 -- Step 5: Query the unified view — hot + cold in a single query
 -- =============================================================================
-
 -- Aggregate across all tiers — one query spans 20+ years of data
 -- from both local storage and remote blob storage transparently.
-SELECT 
+SELECT
     tier,
     COUNT(*)      AS incident_count,
     MIN(dateTime) AS earliest,
@@ -218,15 +212,13 @@ SELECT
 FROM   dbo.vw_SeattleSafety_All
 GROUP BY tier
 ORDER BY earliest DESC;
-GO -- ~11s (scans all cold folders + local hot table)
+GO
 
 -- =============================================================================
 -- Step 6: Partition elimination in action — cold tier performance
 -- =============================================================================
-
 -- This step compares three query patterns to show the performance impact
 -- of data locality (hot vs cold) and partition elimination (filepath filter).
---
 -- Watch the "Messages" tab for elapsed time and logical reads.
 
 SET STATISTICS TIME ON;
@@ -242,7 +234,7 @@ ORDER BY cnt DESC;
 GO
 
 -- Query B: COLD tier WITHOUT partition elimination.
--- Scans ALL 20 year folders from blob storage — slowest.
+-- Scans ALL year folders from blob storage — slowest.
 SELECT category, COUNT(*) AS cnt
 FROM   dbo.vw_SeattleSafety_Cold
 GROUP BY category
@@ -266,21 +258,23 @@ GO
 -- =============================================================================
 -- Cleanup (optional) — re-run Step 0 to reset, or use the statements below.
 -- Drop in reverse dependency order to avoid errors.
+-- ParquetFileFormat is shared with 03-ExternalTables.sql; only drop it if
+-- you're done with both demos.
 -- =============================================================================
 
-DROP VIEW IF EXISTS dbo.vw_SeattleSafety_All;
+DROP VIEW  IF EXISTS dbo.vw_SeattleSafety_All;
 GO
-
-DROP VIEW IF EXISTS dbo.vw_SeattleSafety_Cold;
+DROP VIEW  IF EXISTS dbo.vw_SeattleSafety_Cold;
 GO
-
 DROP TABLE IF EXISTS dbo.SeattleSafety_Hot;
 GO
-
 IF OBJECT_ID('dbo.SeattleSafety_Cold') IS NOT NULL
     DROP EXTERNAL TABLE dbo.SeattleSafety_Cold;
 GO
-
 IF EXISTS (SELECT 1 FROM sys.external_data_sources WHERE name = 'SeattleSafetyTieringDS')
     DROP EXTERNAL DATA SOURCE SeattleSafetyTieringDS;
 GO
+-- Only drop the file format if you're done with 03-ExternalTables.sql too:
+-- IF EXISTS (SELECT 1 FROM sys.external_file_formats WHERE name = 'ParquetFileFormat')
+--     DROP EXTERNAL FILE FORMAT ParquetFileFormat;
+-- GO

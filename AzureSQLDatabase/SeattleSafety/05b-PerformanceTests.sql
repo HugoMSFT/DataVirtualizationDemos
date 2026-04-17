@@ -67,9 +67,10 @@ GO
 -- Test 3: External table WITH statistics vs WITHOUT statistics
 -- =============================================================================
 -- Statistics give the optimizer accurate cardinality estimates, improving
--- memory grants and join strategies.
+-- memory grants and join strategies. External tables only support FULLSCAN
+-- (no SAMPLE), so the first CREATE STATISTICS triggers one full remote scan.
 
--- Check if statistics exist on the cold external table
+-- Check current statistics on the cold external table
 SELECT s.name AS stat_name, c.name AS column_name
 FROM sys.stats s
 JOIN sys.stats_columns sc ON s.object_id = sc.object_id AND s.stats_id = sc.stats_id
@@ -77,15 +78,25 @@ JOIN sys.columns c ON sc.object_id = c.object_id AND sc.column_id = c.column_id
 WHERE s.object_id = OBJECT_ID('dbo.SeattleSafety_Cold');
 GO
 
--- Create statistics if they don't exist
-IF NOT EXISTS (SELECT 1 FROM sys.stats WHERE name = 'ST_Cold_DateTime' AND object_id = OBJECT_ID('dbo.SeattleSafety_Cold'))
-    CREATE STATISTICS ST_Cold_DateTime ON dbo.SeattleSafety_Cold ([dateTime]) WITH SAMPLE 50 PERCENT;
-IF NOT EXISTS (SELECT 1 FROM sys.stats WHERE name = 'ST_Cold_Category' AND object_id = OBJECT_ID('dbo.SeattleSafety_Cold'))
-    CREATE STATISTICS ST_Cold_Category ON dbo.SeattleSafety_Cold ([category]) WITH SAMPLE 50 PERCENT;
+-- Enable actual execution plan (Ctrl+M) before running these.
+-- Run BEFORE creating stats: note the estimated vs actual row counts on
+-- the external-table scan — the optimizer is guessing.
+SELECT category, COUNT(*) AS cnt
+FROM dbo.SeattleSafety_Cold
+GROUP BY category
+ORDER BY cnt DESC;
 GO
 
--- Now re-run a query on the external table — compare the estimated vs actual
--- rows in the execution plan (Ctrl+M to include actual execution plan)
+-- Create statistics if they don't exist (external tables support FULLSCAN only)
+IF NOT EXISTS (SELECT 1 FROM sys.stats WHERE name = 'ST_Cold_DateTime' AND object_id = OBJECT_ID('dbo.SeattleSafety_Cold'))
+    CREATE STATISTICS ST_Cold_DateTime ON dbo.SeattleSafety_Cold ([dateTime]) WITH FULLSCAN;
+IF NOT EXISTS (SELECT 1 FROM sys.stats WHERE name = 'ST_Cold_Category' AND object_id = OBJECT_ID('dbo.SeattleSafety_Cold'))
+    CREATE STATISTICS ST_Cold_Category ON dbo.SeattleSafety_Cold ([category]) WITH FULLSCAN;
+GO
+
+-- Now re-run the same query with stats in place. Compare the two plans:
+-- the estimated row count on the external-table scan should be much closer
+-- to the actual row count than it was in the "before" run.
 SELECT category, COUNT(*) AS cnt
 FROM dbo.SeattleSafety_Cold
 GROUP BY category

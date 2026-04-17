@@ -2,7 +2,7 @@
 -- Demo: Advanced Features — Geospatial & Introspection DMVs
 -- Dataset: Seattle Safety (Fire Department 911 Dispatches)
 -- Source: https://learn.microsoft.com/en-us/azure/open-datasets/dataset-seattle-safety
--- Platform: Azure SQL Database (with Data Virtualization enabled)
+-- Platform: Azure SQL Database (Data Virtualization enabled by default)
 -- =============================================================================
 -- This script shows advanced capabilities you can use on virtualized data:
 -- geospatial analysis and execution plan / DMV introspection.
@@ -59,18 +59,21 @@ GROUP BY category
 ORDER BY IncidentCount DESC;
 GO
 
--- Distance calculation: how far is each incident from a reference point?
--- (e.g., Space Needle at 47.6205, -122.3493)
+-- Distance calculation: incidents within 1 km of the Space Needle
+-- (reference point: 47.6205, -122.3493).
+-- The WHERE clause bounds the result so we're actually demonstrating spatial
+-- filtering, not just "show me the 20 closest points".
+DECLARE @ref geography = geography::Point(47.6205, -122.3493, 4326);
+
 SELECT TOP 20
     category,
     address,
     dateTime,
-    geography::Point(latitude, longitude, 4326).STDistance(
-        geography::Point(47.6205, -122.3493, 4326)
-    ) / 1000.0 AS distance_km
+    geography::Point(latitude, longitude, 4326).STDistance(@ref) / 1000.0 AS distance_km
 FROM dbo.SeattleSafety_External
 WHERE latitude IS NOT NULL
   AND longitude IS NOT NULL
+  AND geography::Point(latitude, longitude, 4326).STDistance(@ref) <= 1000 -- 1 km
 ORDER BY distance_km ASC;
 GO
 
@@ -96,15 +99,36 @@ ORDER BY qs.last_execution_time DESC;
 GO
 
 -- =============================================================================
--- Step 4: External work DMV (if available on your SKU)
+-- Step 4: Predicate pushdown evidence (sys.dm_exec_external_work)
 -- =============================================================================
+-- sys.dm_exec_external_work shows details about remote data scans: how many
+-- bytes the engine actually pulled from blob storage. Comparing an unfiltered
+-- query to a filtered one on the same external table shows predicate
+-- pushdown in action — fewer bytes read when the filter can be pushed down.
 
--- sys.dm_exec_external_work shows details about remote data scans:
--- bytes read, rows returned, pushdown operations, etc.
-
-IF OBJECT_ID('sys.dm_exec_external_work') IS NOT NULL
+IF OBJECT_ID('sys.dm_exec_external_work') IS NULL
 BEGIN
-    SELECT TOP 50 *
+    PRINT 'sys.dm_exec_external_work is not available on this SKU — skipping.';
+END
+ELSE
+BEGIN
+    -- Baseline: full aggregate, no WHERE
+    SELECT COUNT(*) AS rows_all FROM dbo.SeattleSafety_External;
+
+    -- Filtered: single category. If pushdown works, bytes_processed for this
+    -- execution should be smaller than for the baseline above.
+    SELECT COUNT(*) AS rows_medic
+    FROM dbo.SeattleSafety_External
+    WHERE category = 'Medic Response';
+
+    -- Show the two most recent external-work rows side by side.
+    SELECT TOP 5
+        start_time,
+        end_time,
+        session_id,
+        request_id,
+        bytes_processed,
+        rows_processed
     FROM sys.dm_exec_external_work
     ORDER BY start_time DESC;
 END
