@@ -2,7 +2,7 @@
 -- Demo: External Data Source & External Tables
 -- Dataset: Seattle Safety (Fire Department 911 Dispatches)
 -- Source: https://learn.microsoft.com/en-us/azure/open-datasets/dataset-seattle-safety
--- Platform: Azure SQL Database (with Data Virtualization enabled)
+-- Platform: Azure SQL Database (Data Virtualization enabled by default)
 -- =============================================================================
 -- After ad-hoc exploration with OPENROWSET, this script creates persistent
 -- external objects so the dataset can be queried like a regular table —
@@ -10,7 +10,31 @@
 -- =============================================================================
 
 -- =============================================================================
--- Step 1: Create an External Data Source
+-- Step 1: OPENROWSET with an explicit WITH schema clause
+-- =============================================================================
+-- In 01 we let SQL Server infer the schema from Parquet metadata. That's
+-- convenient for exploration but has two drawbacks:
+--   • The engine reads Parquet footers on every query to re-discover the shape.
+--   • Inferred types can be wider than needed (e.g. NVARCHAR(4000)).
+-- The WITH clause lets you pin column names and types explicitly, which is
+-- faster and also lets you project only the columns you need.
+
+SELECT TOP 100 *
+FROM OPENROWSET(
+    BULK 'abs://citydatacontainer@azureopendatastorage.blob.core.windows.net/Safety/Release/city=Seattle/*.parquet',
+    FORMAT = 'PARQUET'
+) WITH (
+    [dateTime] DATETIME2,
+    [category] VARCHAR(100),
+    [address]  VARCHAR(500),
+    [latitude] FLOAT,
+    [longitude] FLOAT
+) AS [SeattleSafety]
+ORDER BY [dateTime] DESC;
+GO
+
+-- =============================================================================
+-- Step 2: Create an External Data Source
 -- =============================================================================
 
 -- An External Data Source encapsulates the connection info (location, credentials).
@@ -26,7 +50,7 @@ END
 GO
 
 -- =============================================================================
--- Step 2: Create an External File Format
+-- Step 3: Create an External File Format
 -- =============================================================================
 
 IF NOT EXISTS (SELECT 1 FROM sys.external_file_formats WHERE name = 'ParquetFileFormat')
@@ -39,7 +63,7 @@ END
 GO
 
 -- =============================================================================
--- Step 3: Create the External Table
+-- Step 4: Create the External Table
 -- =============================================================================
 
 -- The external table looks and feels like a regular table.
@@ -71,18 +95,17 @@ WITH (
 GO
 
 -- Create statistics on commonly queried columns to improve query plans.
--- Without stats, the optimizer assumes default cardinality estimates which
--- can lead to poor memory grants and suboptimal join strategies.
--- Note: FULLSCAN is not supported on all external table configurations;
--- use SAMPLE to scan a percentage of the remote data instead.
+-- External tables only support FULLSCAN (no SAMPLE) — the engine scans the
+-- full remote dataset once to build the histogram. Worth it for stable
+-- cardinality estimates, memory grants, and join strategies.
 
-CREATE STATISTICS ST_SeattleSafety_DateTime ON dbo.SeattleSafety_External ([dateTime]) WITH SAMPLE 50 PERCENT;
-CREATE STATISTICS ST_SeattleSafety_Category ON dbo.SeattleSafety_External ([category]) WITH SAMPLE 50 PERCENT;
-CREATE STATISTICS ST_SeattleSafety_Address  ON dbo.SeattleSafety_External ([address])  WITH SAMPLE 50 PERCENT;
+CREATE STATISTICS ST_SeattleSafety_DateTime ON dbo.SeattleSafety_External ([dateTime]) WITH FULLSCAN;
+CREATE STATISTICS ST_SeattleSafety_Category ON dbo.SeattleSafety_External ([category]) WITH FULLSCAN;
+CREATE STATISTICS ST_SeattleSafety_Address  ON dbo.SeattleSafety_External ([address])  WITH FULLSCAN;
 GO
 
 -- =============================================================================
--- Step 4: Query the external table — just like a regular table
+-- Step 5: Query the external table — just like a regular table
 -- =============================================================================
 
 SELECT TOP 50
@@ -96,12 +119,11 @@ ORDER BY dateTime DESC;
 GO
 
 -- =============================================================================
--- Step 5: Hybrid query — join external data with a local lookup table
+-- Step 6: Hybrid query — join external data with a local lookup table
 -- =============================================================================
 
 -- Create a small local reference table
-IF OBJECT_ID('dbo.CategoryPriority') IS NOT NULL
-    DROP TABLE dbo.CategoryPriority;
+DROP TABLE IF EXISTS dbo.CategoryPriority;
 GO
 
 CREATE TABLE dbo.CategoryPriority
@@ -138,11 +160,11 @@ ORDER BY s.dateTime DESC;
 GO
 
 -- =============================================================================
--- Step 6: Schema introspection on external objects
+-- Step 7: Schema introspection on external objects
 -- =============================================================================
 
 -- See the columns defined in the external table
-SELECT 
+SELECT
     c.column_id,
     c.name,
     c.max_length,
@@ -165,10 +187,15 @@ JOIN sys.schemas AS s ON t.schema_id = s.schema_id;
 GO
 
 -- =============================================================================
--- Cleanup (optional)
+-- Cleanup (optional) — 04-AdvancedFeatures.sql depends on the objects above.
+-- Only uncomment the block below if you are DONE with script 04.
+-- ParquetFileFormat and SeattleSafetyDS are kept intentionally (04 uses them).
 -- =============================================================================
-DROP EXTERNAL TABLE dbo.SeattleSafety_External;
-DROP EXTERNAL FILE FORMAT ParquetFileFormat;
-DROP EXTERNAL DATA SOURCE SeattleSafetyDS;
-DROP TABLE IF EXISTS dbo.CategoryPriority;
-GO
+-- IF OBJECT_ID('dbo.SeattleSafety_External') IS NOT NULL
+--     DROP EXTERNAL TABLE dbo.SeattleSafety_External;
+-- DROP TABLE IF EXISTS dbo.CategoryPriority;
+-- IF EXISTS (SELECT 1 FROM sys.external_file_formats WHERE name = 'ParquetFileFormat')
+--     DROP EXTERNAL FILE FORMAT ParquetFileFormat;
+-- IF EXISTS (SELECT 1 FROM sys.external_data_sources WHERE name = 'SeattleSafetyDS')
+--     DROP EXTERNAL DATA SOURCE SeattleSafetyDS;
+-- GO

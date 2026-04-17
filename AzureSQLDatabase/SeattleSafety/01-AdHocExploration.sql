@@ -2,7 +2,7 @@
 -- Demo: Ad-Hoc Query Exploration with OPENROWSET
 -- Dataset: Seattle Safety (Fire Department 911 Dispatches)
 -- Source: https://learn.microsoft.com/en-us/azure/open-datasets/dataset-seattle-safety
--- Platform: Azure SQL Database (with Data Virtualization enabled)
+-- Platform: Azure SQL Database (Data Virtualization enabled by default)
 -- =============================================================================
 -- This demo starts from an empty Azure SQL Database and shows how to use
 -- OPENROWSET to query a public Parquet dataset directly — no ingestion needed.
@@ -18,7 +18,7 @@
 -- Path:            Safety/Release/city=Seattle/
 -- No credentials needed — this is a publicly accessible dataset.
 
-SELECT COUNT(*) -- 1,875,815 ROWS
+SELECT COUNT(*) AS total_rows
 FROM OPENROWSET(
     BULK 'abs://citydatacontainer@azureopendatastorage.blob.core.windows.net/Safety/Release/city=Seattle/*.parquet',
     FORMAT = 'PARQUET'
@@ -51,7 +51,7 @@ GO
 -- Step 3: Analytical exploration — quick insights
 -- =============================================================================
 
--- Monthly trend of incidents (32 seconds)
+-- Monthly trend of incidents
 SELECT 
     YEAR(dateTime)  AS [Year],
     MONTH(dateTime) AS [Month],
@@ -81,3 +81,10 @@ FROM OPENROWSET(
 GROUP BY [SeattleSafety].filename()
 ORDER BY [file_name];
 GO
+
+-- =============================================================================
+-- Up next
+-- =============================================================================
+-- Every query above paid the cost of reading Parquet from remote storage.
+-- In 02-IngestData.sql we'll land the full dataset into a local table so
+-- we get indexes, statistics, and buffer-pool caching — then compare.
