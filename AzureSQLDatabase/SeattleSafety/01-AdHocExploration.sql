@@ -72,8 +72,8 @@ GO
 -- Useful to understand how the data is physically organized.
 
 SELECT 
-    [SeattleSafety].filename() AS [file_name]
-    ,COUNT(*)                  AS [row_count]
+    [SeattleSafety].filename() AS [file_name],
+    COUNT(*)                  AS [row_count]
 FROM OPENROWSET(
     BULK 'abs://citydatacontainer@azureopendatastorage.blob.core.windows.net/Safety/Release/city=Seattle/*.parquet',
     FORMAT = 'PARQUET'

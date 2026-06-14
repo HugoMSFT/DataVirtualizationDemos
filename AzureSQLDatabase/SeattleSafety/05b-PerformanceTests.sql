@@ -75,7 +75,8 @@ SELECT s.name AS stat_name, c.name AS column_name
 FROM sys.stats s
 JOIN sys.stats_columns sc ON s.object_id = sc.object_id AND s.stats_id = sc.stats_id
 JOIN sys.columns c ON sc.object_id = c.object_id AND sc.column_id = c.column_id
-WHERE s.object_id = OBJECT_ID('dbo.SeattleSafety_Cold');
+WHERE s.object_id = OBJECT_ID('dbo.SeattleSafety_Cold')
+ORDER BY s.name, c.column_id;
 GO
 
 -- Enable actual execution plan (Ctrl+M) before running these.
