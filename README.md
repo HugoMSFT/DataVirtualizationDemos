@@ -7,6 +7,7 @@ A collection of demos showcasing **Data Virtualization** capabilities in SQL —
 | Demo | Platform | Description |
 |------|----------|-------------|
 | [Seattle Safety](AzureSQLDatabase/SeattleSafety/) | Azure SQL Database | End-to-end walkthrough using a public 911 dispatch dataset: ad-hoc exploration with `OPENROWSET`, schema discovery, `filepath()`/`filename()`, data ingestion, external tables, hybrid queries, geospatial analysis, and hot/cold data tiering. |
+| [Azure Open Datasets](AzureDatasets/) | Azure SQL Database | A catalog review of every [Azure Open Dataset](https://learn.microsoft.com/azure/open-datasets/dataset-catalog) with a "load into SQL?" verdict, plus ready-to-run scripts for 17 tabular datasets (NYC Taxi, BLS labor & economics, Census population, city safety, public holidays). Each has `OPENROWSET` ingest into a per-dataset database, an external table, and OPENROWSET-vs-external view comparisons. |
 
 ## Getting Started
 
