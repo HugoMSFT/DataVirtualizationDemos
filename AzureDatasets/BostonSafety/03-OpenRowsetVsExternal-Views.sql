@@ -76,14 +76,14 @@ SET STATISTICS TIME ON;
 SET STATISTICS IO ON;
 GO
 
--- OPENROWSET view
+-- OPENROWSET view -- 51s
 SELECT category, COUNT(*) AS incident_count
 FROM dbo.vw_BostonSafety_OpenRowset
 GROUP BY category
 ORDER BY incident_count DESC;
 GO
 
--- External-table view
+-- External-table view -- 3s
 SELECT category, COUNT(*) AS incident_count
 FROM dbo.vw_BostonSafety_External
 GROUP BY category
