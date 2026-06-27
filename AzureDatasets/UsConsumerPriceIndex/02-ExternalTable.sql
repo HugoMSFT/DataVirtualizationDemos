@@ -78,7 +78,7 @@ GO
 
 -- Inspect the external table definition
 SELECT c.column_id, c.name, t.name AS data_type, c.max_length
-FROM sys.external_table_columns AS c
+FROM sys.columns AS c
 JOIN sys.types AS t ON c.user_type_id = t.user_type_id
 WHERE c.object_id = OBJECT_ID('dbo.UsConsumerPriceIndex_External')
 ORDER BY c.column_id;
