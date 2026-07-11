@@ -132,7 +132,7 @@
                                    Margin="0,5,0,0"
                                    FontSize="22"
                                    FontWeight="SemiBold" />
-                        <TextBlock Text="Click any highlighted surface on the schematic."
+                        <TextBlock Text="Click a highlighted button on the mouse photo."
                                    Margin="0,5,0,0"
                                    Foreground="{StaticResource MutedTextBrush}" />
                     </StackPanel>
@@ -171,7 +171,7 @@
                                        VerticalAlignment="Center"
                                        Foreground="{StaticResource MutedTextBrush}"
                                        TextWrapping="Wrap"
-                                       Text="Original top-view schematic. The small button below the wheel is the fixed, non-assignable scroll-mode switch." />
+                                       Text="The small button below the wheel is the fixed, non-assignable scroll-mode switch." />
                         </Grid>
                     </Border>
                 </Grid>
@@ -218,8 +218,13 @@
                                            Margin="0,0,0,7"
                                            FontWeight="SemiBold" />
                                 <ComboBox ItemsSource="{Binding AvailablePrimaryActions}"
+                                          IsEnabled="{Binding SelectedAssignment.CanAssignPrimaryAction}"
                                           SelectedItem="{Binding SelectedAssignment.PrimaryAction, Mode=TwoWay}"
                                           DisplayMemberPath="SelectionLabel" />
+                                <TextBlock Margin="0,7,0,0"
+                                           Text="Locked: normal left click is always preserved."
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           Visibility="{Binding SelectedAssignment.IsPrimaryActionLocked, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
                                 <TextBlock Text="HyperShift action"
                                            Margin="0,20,0,7"
@@ -251,6 +256,28 @@
                                            Margin="0,24,0,7"
                                            FontWeight="SemiBold" />
                                 <TextBox Text="{Binding ProfileName, UpdateSourceTrigger=PropertyChanged}" />
+
+                                <TextBlock Text="Saved presets"
+                                           Margin="0,18,0,7"
+                                           FontWeight="SemiBold" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <ComboBox ItemsSource="{Binding PresetNames}"
+                                              SelectedItem="{Binding SelectedPresetName, Mode=TwoWay}"
+                                              MinWidth="180" />
+                                    <Button Grid.Column="1"
+                                            Content="Load"
+                                            Margin="8,0,0,0"
+                                            Command="{Binding LoadPresetCommand}" />
+                                    <Button Grid.Column="2"
+                                            Content="Save preset"
+                                            Margin="8,0,0,0"
+                                            Command="{Binding SaveProfileCommand}" />
+                                </Grid>
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>
@@ -473,12 +500,6 @@
                        Foreground="{StaticResource MutedTextBrush}"
                        TextTrimming="CharacterEllipsis" />
             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                <Button Content="Reload local"
-                        Margin="0,0,8,0"
-                        Command="{Binding ReloadProfileCommand}" />
-                <Button Content="Save local profile"
-                        Margin="0,0,8,0"
-                        Command="{Binding SaveProfileCommand}" />
                 <Button Content="Read from mouse"
                         Margin="0,0,8,0"
                         Command="{Binding RefreshDeviceCommand}" />

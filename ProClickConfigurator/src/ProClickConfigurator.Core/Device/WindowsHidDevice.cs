@@ -3,9 +3,9 @@ using ProClickConfigurator.Core.Protocol;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 
-namespace ProClickConfigurator.Device;
+namespace ProClickConfigurator.Core.Device;
 
-internal sealed class WindowsHidDevice : IDisposable
+internal sealed class WindowsHidDevice : IRazerHidDevice
 {
     private readonly SafeFileHandle _handle;
     private readonly int _featureReportLength;
@@ -70,7 +70,7 @@ internal sealed class WindowsHidDevice : IDisposable
         }
     }
 
-    internal void SetFeature(ReadOnlySpan<byte> report)
+    public void SetFeature(ReadOnlySpan<byte> report)
     {
         if (report.Length != RazerReport.Size)
         {
@@ -85,7 +85,7 @@ internal sealed class WindowsHidDevice : IDisposable
         }
     }
 
-    internal byte[] GetFeature()
+    public byte[] GetFeature()
     {
         var buffer = new byte[_featureReportLength];
         if (!NativeMethods.HidD_GetFeature(_handle, buffer, buffer.Length))

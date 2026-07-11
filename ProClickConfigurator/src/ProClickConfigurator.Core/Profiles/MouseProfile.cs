@@ -109,6 +109,7 @@ public sealed class MouseProfile
             RemoveMomentaryHyperShift(PrimaryAssignments[MouseButtonId.TiltLeft]);
         PrimaryAssignments[MouseButtonId.TiltRight] =
             RemoveMomentaryHyperShift(PrimaryAssignments[MouseButtonId.TiltRight]);
+        PrimaryAssignments[MouseButtonId.Left] = WindowsActionCatalog.PassthroughId;
 
         foreach (var button in Enum.GetValues<MouseButtonId>())
         {

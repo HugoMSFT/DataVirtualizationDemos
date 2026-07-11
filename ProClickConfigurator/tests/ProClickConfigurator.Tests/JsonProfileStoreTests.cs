@@ -61,4 +61,70 @@ public sealed class JsonProfileStoreTests
                 WindowsActionCatalog.PassthroughId,
                 profile.PrimaryAssignments[button]));
     }
+
+    [Fact]
+    public async Task NamedPresetsCanBeListedAndLoaded()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"pro-click-presets-{Guid.NewGuid():N}");
+        var store = new JsonProfileStore(
+            Path.Combine(directory, "profile.json"),
+            Path.Combine(directory, "presets"));
+
+        try
+        {
+            var editing = MouseProfile.CreateDefault();
+            editing.Name = "Editing";
+            editing.CurrentDpi = 1200;
+            var travel = MouseProfile.CreateDefault();
+            travel.Name = "Travel";
+            travel.CurrentDpi = 800;
+
+            await store.SavePresetAsync(travel);
+            await store.SavePresetAsync(editing);
+
+            var catalog = await store.ReadPresetCatalogAsync();
+            Assert.Equal(["Editing", "Travel"], catalog.Names);
+            Assert.Equal(0, catalog.UnreadableCount);
+            Assert.Equal(1200, (await store.LoadPresetAsync("editing")).CurrentDpi);
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task PresetCatalogReportsAndSkipsUnreadableFiles()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"pro-click-presets-{Guid.NewGuid():N}");
+        var presetDirectory = Path.Combine(directory, "presets");
+        var store = new JsonProfileStore(
+            Path.Combine(directory, "profile.json"),
+            presetDirectory);
+
+        try
+        {
+            var valid = MouseProfile.CreateDefault();
+            valid.Name = "Travel";
+            await store.SavePresetAsync(valid);
+            await File.WriteAllTextAsync(
+                Path.Combine(presetDirectory, "invalid.json"),
+                """{"schemaVersion":999}""");
+
+            var catalog = await store.ReadPresetCatalogAsync();
+
+            Assert.Equal(["Travel"], catalog.Names);
+            Assert.Equal(1, catalog.UnreadableCount);
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
 }

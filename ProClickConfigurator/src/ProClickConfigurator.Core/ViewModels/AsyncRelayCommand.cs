@@ -1,6 +1,6 @@
 using System.Windows.Input;
 
-namespace ProClickConfigurator.ViewModels;
+namespace ProClickConfigurator.Core.ViewModels;
 
 public sealed class AsyncRelayCommand : ICommand
 {

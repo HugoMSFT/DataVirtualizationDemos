@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace ProClickConfigurator.ViewModels;
+namespace ProClickConfigurator.Core.ViewModels;
 
 public abstract class ObservableObject : INotifyPropertyChanged
 {

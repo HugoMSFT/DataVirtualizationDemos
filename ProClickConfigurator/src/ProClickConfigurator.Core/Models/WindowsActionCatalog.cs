@@ -49,13 +49,14 @@ public static class WindowsActionCatalog
     public const string PassthroughId = "system.passthrough";
     public const string DisabledId = "system.disabled";
     public const string HyperShiftId = "system.hypershift";
+    public const string LeftClickId = "mouse.left";
 
     public static IReadOnlyList<WindowsActionDefinition> All { get; } =
     [
         Action(PassthroughId, "Default / pass through", "Mouse", WindowsActionKind.Passthrough),
         Action(DisabledId, "Disable button", "Mouse", WindowsActionKind.Disabled),
         Action(HyperShiftId, "HyperShift modifier", "Mouse", WindowsActionKind.HyperShift),
-        Mouse("mouse.left", "Left click", MouseButtonId.Left),
+        Mouse(LeftClickId, "Left click", MouseButtonId.Left),
         Mouse("mouse.right", "Right click", MouseButtonId.Right),
         Mouse("mouse.middle", "Middle click", MouseButtonId.Middle),
         Mouse("mouse.back", "Back", MouseButtonId.Back),

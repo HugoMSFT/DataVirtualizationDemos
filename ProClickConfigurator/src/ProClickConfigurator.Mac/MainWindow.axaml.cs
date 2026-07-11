@@ -1,10 +1,10 @@
-using ProClickConfigurator.Controls;
+using Avalonia.Controls;
+using Avalonia.Threading;
 using ProClickConfigurator.Core.Profiles;
 using ProClickConfigurator.Core.ViewModels;
-using System.Windows;
-using System.Windows.Threading;
+using ProClickConfigurator.Mac.Controls;
 
-namespace ProClickConfigurator;
+namespace ProClickConfigurator.Mac;
 
 public partial class MainWindow : Window
 {
@@ -22,11 +22,11 @@ public partial class MainWindow : Window
             Interval = TimeSpan.FromMinutes(1),
         };
         _batteryTimer.Tick += OnBatteryTimerTick;
-        Loaded += OnLoaded;
+        Opened += OnOpened;
         Closed += OnClosed;
     }
 
-    private async void OnLoaded(object sender, RoutedEventArgs args)
+    private async void OnOpened(object? sender, EventArgs args)
     {
         await _viewModel.InitializeAsync();
         _batteryTimer.Start();
@@ -37,9 +37,17 @@ public partial class MainWindow : Window
         await _viewModel.RefreshBatteryAsync();
     }
 
-    private void OnMouseButtonSelected(object sender, MouseButtonSelectedEventArgs args)
+    private void OnMouseButtonSelected(object? sender, MouseButtonSelectedEventArgs args)
     {
         _viewModel.SelectButtonCommand.Execute(args.Button);
+    }
+
+    private void OnRemoveDpiStage(object? sender, Avalonia.Interactivity.RoutedEventArgs args)
+    {
+        if (sender is Button { Tag: DpiStageViewModel stage })
+        {
+            _viewModel.RemoveDpiStageCommand.Execute(stage);
+        }
     }
 
     private void OnClosed(object? sender, EventArgs args)

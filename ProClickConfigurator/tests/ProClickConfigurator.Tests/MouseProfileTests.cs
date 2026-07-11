@@ -27,7 +27,7 @@ public sealed class MouseProfileTests
         profile.PollingRateHz = 250;
         profile.IdleTimeSeconds = 2_000;
         profile.LowBatteryThresholdPercent = 90;
-        profile.PrimaryAssignments[MouseButtonId.Left] = "missing.action";
+        profile.PrimaryAssignments[MouseButtonId.Left] = "media.play-pause";
         profile.PrimaryAssignments[MouseButtonId.Right] = "mouse.right";
         profile.PrimaryAssignments[MouseButtonId.TiltLeft] = WindowsActionCatalog.HyperShiftId;
         profile.PrimaryAssignments[MouseButtonId.Back] = WindowsActionCatalog.HyperShiftId;

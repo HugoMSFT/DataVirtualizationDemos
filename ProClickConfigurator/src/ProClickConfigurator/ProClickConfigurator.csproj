@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ProClickConfigurator.Core\ProClickConfigurator.Core.csproj" />
+    <Resource Include="Assets\pro-click-mini.jpg" />
   </ItemGroup>
 
   <PropertyGroup>

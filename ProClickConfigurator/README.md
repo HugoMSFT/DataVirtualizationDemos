@@ -1,10 +1,8 @@
 # Pro Click Mini Configurator
 
-A lightweight, unofficial Windows configurator for the Razer Pro Click Mini.
-It talks directly to the 2.4 GHz receiver for verified hardware settings and
-onboard button assignments, including the HyperShift layer.
-
-![Application layout](docs/configurator-layout.svg)
+A lightweight, unofficial Windows and macOS configurator for the Razer Pro
+Click Mini. It talks directly to the 2.4 GHz receiver for verified hardware
+settings and onboard button assignments, including the HyperShift layer.
 
 ## Features
 
@@ -15,9 +13,10 @@ onboard button assignments, including the HyperShift layer.
 - Read and assign seven onboard controls to common mouse, editing, navigation,
   Windows, and media actions.
 - Read and configure the mouse's onboard HyperShift layer.
-- Save assignments and settings as a readable local JSON profile.
-- Use an original, clickable top-view mouse schematic; no Razer artwork is
-  bundled.
+- Save assignments and settings as named, reusable local presets.
+- Select all seven controls directly on the Pro Click Mini product photo.
+- Keep normal left click locked while allowing a separate HyperShift action.
+- Run as a portable, self-contained application without installing .NET.
 
 ## Important hardware boundary
 
@@ -39,54 +38,66 @@ controls on both the primary and HyperShift layers, including write/read-back.
 | HyperShift layer | Yes | Yes | No |
 
 The **Apply to mouse** button writes performance, power, primary assignments,
-and HyperShift assignments, then reads each setting back. **Save local profile**
-also stores a backup in:
+and HyperShift assignments, then reads each setting back. **Save preset** keeps
+a named local copy that can be loaded again later. The current startup profile
+and named presets are stored under:
 
 ```text
-%LOCALAPPDATA%\ProClickConfigurator\profile.json
+Windows: %LOCALAPPDATA%\ProClickConfigurator
+macOS:   ~/Library/Application Support/ProClickConfigurator
 ```
 
 ## Requirements
 
-- Windows 10 or Windows 11
+- Windows 10/11 x64, macOS 12 or later on Apple Silicon, or macOS 12 or later
+  on Intel
 - Razer Pro Click Mini connected through its 2.4 GHz receiver
-- [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0)
 
 Bluetooth configuration is not implemented because no equivalent
 vendor-feature interface has been verified for that mode.
 
+## Portable packages
+
+The self-contained packages do not require an installer or a separate .NET
+runtime:
+
+- `ProClickConfigurator-win-x64.zip`
+- `ProClickConfigurator-osx-arm64.app.tar.gz`
+- `ProClickConfigurator-osx-x64.app.tar.gz`
+
+Extract the package for the computer's architecture. On macOS, double-click the
+`.tar.gz`, then right-click **Pro Click Mini Configurator.app** and select
+**Open** the first time because the portable build is unsigned. If macOS blocks
+receiver access, allow the app under **System Settings > Privacy & Security >
+Input Monitoring**, then reopen it.
+
 ## Build and run
 
-From this directory:
+Building from source requires the .NET 8 SDK. From this directory:
 
 ```powershell
 dotnet run --project .\src\ProClickConfigurator\ProClickConfigurator.csproj
-```
-
-Run the tests:
-
-```powershell
 dotnet test .\ProClickConfigurator.sln
 ```
 
-Create a lightweight, framework-dependent single-file build:
+To produce all three self-contained packages, install Python 3 and run:
 
 ```powershell
-dotnet publish .\src\ProClickConfigurator\ProClickConfigurator.csproj `
-  --configuration Release `
-  --runtime win-x64 `
-  --self-contained false `
-  -p:PublishSingleFile=true `
-  --output .\publish
+.\scripts\publish-portable.ps1
 ```
+
+The packages are written to `artifacts\portable`.
 
 ## Using assignments and HyperShift
 
-1. Click a numbered control on the mouse schematic.
+1. Click a numbered control on the mouse photo.
 2. Choose its primary and HyperShift actions.
 3. Assign **HyperShift modifier** as the primary action of one pressable button.
 4. Select **Apply to mouse** to write both layers to onboard memory.
-5. Optionally save a local profile as a backup.
+5. Optionally name and save the configuration as a reusable preset.
+
+The normal left-click action is locked for safety. Its HyperShift-layer action
+remains configurable.
 
 Select **Read from mouse** before editing to import the assignments currently
 stored by Synapse or another configurator. If an onboard action is not in this

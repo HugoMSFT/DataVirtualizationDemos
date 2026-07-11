@@ -1,6 +1,6 @@
 using ProClickConfigurator.Core.Models;
 
-namespace ProClickConfigurator.ViewModels;
+namespace ProClickConfigurator.Core.ViewModels;
 
 public sealed class ButtonAssignmentViewModel : ObservableObject
 {
@@ -15,7 +15,9 @@ public sealed class ButtonAssignmentViewModel : ObservableObject
         Action changed)
     {
         Button = button;
-        _primaryAction = primaryAction;
+        _primaryAction = button == MouseButtonId.Left
+            ? WindowsActionCatalog.Get(WindowsActionCatalog.LeftClickId)
+            : primaryAction;
         _hyperShiftAction = hyperShiftAction;
         _changed = changed;
     }
@@ -37,6 +39,10 @@ public sealed class ButtonAssignmentViewModel : ObservableObject
     public bool CanBeHyperShiftModifier =>
         Button is not (MouseButtonId.TiltLeft or MouseButtonId.TiltRight);
 
+    public bool CanAssignPrimaryAction => Button != MouseButtonId.Left;
+
+    public bool IsPrimaryActionLocked => !CanAssignPrimaryAction;
+
     public bool CanAssignHyperShiftAction =>
         PrimaryAction.Kind != WindowsActionKind.HyperShift;
 
@@ -45,9 +51,11 @@ public sealed class ButtonAssignmentViewModel : ObservableObject
         get => _primaryAction;
         set
         {
-            var normalized = !CanBeHyperShiftModifier && value.Kind == WindowsActionKind.HyperShift
-                ? WindowsActionCatalog.Get(WindowsActionCatalog.PassthroughId)
-                : value;
+            var normalized = !CanAssignPrimaryAction
+                ? WindowsActionCatalog.Get(WindowsActionCatalog.LeftClickId)
+                : !CanBeHyperShiftModifier && value.Kind == WindowsActionKind.HyperShift
+                    ? WindowsActionCatalog.Get(WindowsActionCatalog.PassthroughId)
+                    : value;
             if (SetProperty(ref _primaryAction, normalized))
             {
                 if (!CanAssignHyperShiftAction)

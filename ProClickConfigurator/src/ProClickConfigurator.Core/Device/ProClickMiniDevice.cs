@@ -1,7 +1,7 @@
 using ProClickConfigurator.Core.Models;
 using ProClickConfigurator.Core.Protocol;
 
-namespace ProClickConfigurator.Device;
+namespace ProClickConfigurator.Core.Device;
 
 public sealed class ProClickMiniDevice : IDisposable
 {
@@ -15,17 +15,30 @@ public sealed class ProClickMiniDevice : IDisposable
     private const int WirelessDelayMilliseconds = 60;
     private const int MaximumResponseAttempts = 10;
     private const int MaximumRequestAttempts = 3;
-    private readonly WindowsHidDevice _device;
+    private readonly IRazerHidDevice _device;
     private readonly object _transactionLock = new();
 
-    private ProClickMiniDevice(WindowsHidDevice device)
+    private ProClickMiniDevice(IRazerHidDevice device)
     {
         _device = device;
     }
 
     public static ProClickMiniDevice? TryConnect()
     {
-        var device = WindowsHidDevice.Find(VendorId, ProductId);
+        IRazerHidDevice? device;
+        if (OperatingSystem.IsWindows())
+        {
+            device = WindowsHidDevice.Find(VendorId, ProductId);
+        }
+        else if (OperatingSystem.IsMacOS())
+        {
+            device = MacHidDevice.Find(VendorId, ProductId);
+        }
+        else
+        {
+            device = null;
+        }
+
         return device is null ? null : new ProClickMiniDevice(device);
     }
 
@@ -327,16 +340,19 @@ public sealed class ProClickMiniDevice : IDisposable
                 throw new InvalidOperationException($"The onboard profile is missing {button}.");
             }
 
+            var normalizedPrimaryAction = button == MouseButtonId.Left
+                ? WindowsActionCatalog.PassthroughId
+                : primaryAction;
             writes.Add(new PendingButtonWrite(
                 button,
                 IsHyperShift: false,
-                OnboardButtonAssignmentCodec.Encode(button, primaryAction)));
+                OnboardButtonAssignmentCodec.Encode(button, normalizedPrimaryAction)));
             writes.Add(new PendingButtonWrite(
                 button,
                 IsHyperShift: true,
                 OnboardButtonAssignmentCodec.Encode(
                     button,
-                    primaryAction == WindowsActionCatalog.HyperShiftId
+                    normalizedPrimaryAction == WindowsActionCatalog.HyperShiftId
                         ? WindowsActionCatalog.HyperShiftId
                         : hyperShiftAction)));
         }

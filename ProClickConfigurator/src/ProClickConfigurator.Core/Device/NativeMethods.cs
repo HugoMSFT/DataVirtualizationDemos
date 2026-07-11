@@ -1,7 +1,7 @@
 using Microsoft.Win32.SafeHandles;
 using System.Runtime.InteropServices;
 
-namespace ProClickConfigurator.Device;
+namespace ProClickConfigurator.Core.Device;
 
 internal static class NativeMethods
 {

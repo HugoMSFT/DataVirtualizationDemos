@@ -1,4 +1,4 @@
-namespace ProClickConfigurator.ViewModels;
+namespace ProClickConfigurator.Core.ViewModels;
 
 public sealed class DpiStageViewModel : ObservableObject
 {

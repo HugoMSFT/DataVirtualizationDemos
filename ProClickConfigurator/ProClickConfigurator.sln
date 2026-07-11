@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{2BCFCC96
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProClickConfigurator.Tests", "tests\ProClickConfigurator.Tests\ProClickConfigurator.Tests.csproj", "{1FF75C71-743B-4462-8C98-0DC86DBC4A18}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProClickConfigurator.Mac", "src\ProClickConfigurator.Mac\ProClickConfigurator.Mac.csproj", "{7311CADA-C1BE-4436-A13D-F90232444C23}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,10 +36,15 @@ Global
 		{1FF75C71-743B-4462-8C98-0DC86DBC4A18}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1FF75C71-743B-4462-8C98-0DC86DBC4A18}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1FF75C71-743B-4462-8C98-0DC86DBC4A18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7311CADA-C1BE-4436-A13D-F90232444C23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7311CADA-C1BE-4436-A13D-F90232444C23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7311CADA-C1BE-4436-A13D-F90232444C23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7311CADA-C1BE-4436-A13D-F90232444C23}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{3743CD80-C7F8-406B-B0C9-C6B98D1FA60A} = {36138030-A1CF-4CA8-B915-28F9A55EE0A3}
 		{F0624E6E-26C4-4A82-BD57-37CAC9843C40} = {36138030-A1CF-4CA8-B915-28F9A55EE0A3}
 		{1FF75C71-743B-4462-8C98-0DC86DBC4A18} = {2BCFCC96-9D02-4FC2-A981-A11684D7A01C}
+		{7311CADA-C1BE-4436-A13D-F90232444C23} = {36138030-A1CF-4CA8-B915-28F9A55EE0A3}
 	EndGlobalSection
 EndGlobal

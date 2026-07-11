@@ -1,5 +1,5 @@
-<UserControl x:Class="ProClickConfigurator.Controls.MouseDiagram"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+<UserControl x:Class="ProClickConfigurator.Mac.Controls.MouseDiagram"
+             xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:core="clr-namespace:ProClickConfigurator.Core.Models;assembly=ProClickConfigurator.Core"
              Width="397"
@@ -9,13 +9,7 @@
         <SolidColorBrush x:Key="MouseStrokeBrush" Color="#A00F766E" />
         <SolidColorBrush x:Key="SelectedSurfaceBrush" Color="#702DD4BF" />
         <SolidColorBrush x:Key="SelectedStrokeBrush" Color="#14B8A6" />
-        <Style x:Key="ClickableMousePart" TargetType="Path">
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Stroke" Value="{StaticResource MouseStrokeBrush}" />
-            <Setter Property="StrokeThickness" Value="1.5" />
-            <Setter Property="Fill" Value="{StaticResource MouseSurfaceBrush}" />
-        </Style>
-        <Style x:Key="ButtonNumberBadge" TargetType="Border">
+        <ControlTheme x:Key="ButtonNumberBadge" TargetType="Border">
             <Setter Property="Width" Value="26" />
             <Setter Property="Height" Value="26" />
             <Setter Property="Background" Value="#D9111827" />
@@ -23,7 +17,7 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="13" />
             <Setter Property="IsHitTestVisible" Value="False" />
-        </Style>
+        </ControlTheme>
     </UserControl.Resources>
 
     <Canvas Width="397"
@@ -31,56 +25,77 @@
             ClipToBounds="True">
         <Image Width="397"
                Height="604"
-               Source="/ProClickConfigurator;component/Assets/pro-click-mini.jpg"
+               Source="avares://ProClickConfigurator/Assets/pro-click-mini.jpg"
                Stretch="Fill"
                IsHitTestVisible="False" />
 
         <Path x:Name="LeftPart"
               Tag="{x:Static core:MouseButtonId.Left}"
-              Style="{StaticResource ClickableMousePart}"
               Data="M198,9 C119,9 61,33 38,77 L43,204 C90,213 151,209 169,183 L166,111 C166,83 177,69 198,67 Z"
-              ToolTip="Left click"
-              MouseLeftButtonDown="OnPartClicked" />
+              Fill="{StaticResource MouseSurfaceBrush}"
+              Stroke="{StaticResource MouseStrokeBrush}"
+              StrokeThickness="1.5"
+              Cursor="Hand"
+              ToolTip.Tip="Left click"
+              PointerPressed="OnPartPressed" />
         <Path x:Name="RightPart"
               Tag="{x:Static core:MouseButtonId.Right}"
-              Style="{StaticResource ClickableMousePart}"
               Data="M201,9 C280,9 338,33 361,77 L354,204 C307,213 246,209 228,183 L231,111 C231,83 220,69 201,67 Z"
-              ToolTip="Right click"
-              MouseLeftButtonDown="OnPartClicked" />
+              Fill="{StaticResource MouseSurfaceBrush}"
+              Stroke="{StaticResource MouseStrokeBrush}"
+              StrokeThickness="1.5"
+              Cursor="Hand"
+              ToolTip.Tip="Right click"
+              PointerPressed="OnPartPressed" />
         <Path x:Name="MiddlePart"
               Tag="{x:Static core:MouseButtonId.Middle}"
-              Style="{StaticResource ClickableMousePart}"
               Data="M181,69 C172,72 168,85 168,101 L168,162 C168,180 178,189 198,189 C217,189 227,180 227,162 L227,101 C227,85 222,72 213,69 Z"
-              ToolTip="Wheel click"
-              MouseLeftButtonDown="OnPartClicked" />
+              Fill="{StaticResource MouseSurfaceBrush}"
+              Stroke="{StaticResource MouseStrokeBrush}"
+              StrokeThickness="1.5"
+              Cursor="Hand"
+              ToolTip.Tip="Wheel click"
+              PointerPressed="OnPartPressed" />
         <Path x:Name="TiltLeftPart"
               Tag="{x:Static core:MouseButtonId.TiltLeft}"
-              Style="{StaticResource ClickableMousePart}"
               Data="M149,104 C135,104 128,115 128,132 C128,149 135,160 149,160 L165,151 L165,113 Z"
-              ToolTip="Wheel tilt left"
-              MouseLeftButtonDown="OnPartClicked" />
+              Fill="{StaticResource MouseSurfaceBrush}"
+              Stroke="{StaticResource MouseStrokeBrush}"
+              StrokeThickness="1.5"
+              Cursor="Hand"
+              ToolTip.Tip="Wheel tilt left"
+              PointerPressed="OnPartPressed" />
         <Path x:Name="TiltRightPart"
               Tag="{x:Static core:MouseButtonId.TiltRight}"
-              Style="{StaticResource ClickableMousePart}"
               Data="M247,104 C261,104 268,115 268,132 C268,149 261,160 247,160 L231,151 L231,113 Z"
-              ToolTip="Wheel tilt right"
-              MouseLeftButtonDown="OnPartClicked" />
+              Fill="{StaticResource MouseSurfaceBrush}"
+              Stroke="{StaticResource MouseStrokeBrush}"
+              StrokeThickness="1.5"
+              Cursor="Hand"
+              ToolTip.Tip="Wheel tilt right"
+              PointerPressed="OnPartPressed" />
         <Path x:Name="ForwardPart"
               Tag="{x:Static core:MouseButtonId.Forward}"
-              Style="{StaticResource ClickableMousePart}"
               Data="M25,216 C20,221 20,243 22,269 L27,316 C29,322 35,323 41,317 L44,237 C43,224 36,216 25,216 Z"
-              ToolTip="Side forward"
-              MouseLeftButtonDown="OnPartClicked" />
+              Fill="{StaticResource MouseSurfaceBrush}"
+              Stroke="{StaticResource MouseStrokeBrush}"
+              StrokeThickness="1.5"
+              Cursor="Hand"
+              ToolTip.Tip="Side forward"
+              PointerPressed="OnPartPressed" />
         <Path x:Name="BackPart"
               Tag="{x:Static core:MouseButtonId.Back}"
-              Style="{StaticResource ClickableMousePart}"
               Data="M28,324 L41,321 L47,357 C48,368 43,376 37,379 C31,379 27,369 27,357 Z"
-              ToolTip="Side back"
-              MouseLeftButtonDown="OnPartClicked" />
+              Fill="{StaticResource MouseSurfaceBrush}"
+              Stroke="{StaticResource MouseStrokeBrush}"
+              StrokeThickness="1.5"
+              Cursor="Hand"
+              ToolTip.Tip="Side back"
+              PointerPressed="OnPartPressed" />
 
         <Border Canvas.Left="103"
                 Canvas.Top="108"
-                Style="{StaticResource ButtonNumberBadge}">
+                Theme="{StaticResource ButtonNumberBadge}">
             <TextBlock Text="1"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
@@ -89,7 +104,7 @@
         </Border>
         <Border Canvas.Left="270"
                 Canvas.Top="108"
-                Style="{StaticResource ButtonNumberBadge}">
+                Theme="{StaticResource ButtonNumberBadge}">
             <TextBlock Text="2"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
@@ -98,7 +113,7 @@
         </Border>
         <Border Canvas.Left="185"
                 Canvas.Top="154"
-                Style="{StaticResource ButtonNumberBadge}">
+                Theme="{StaticResource ButtonNumberBadge}">
             <TextBlock Text="3"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
@@ -107,7 +122,7 @@
         </Border>
         <Border Canvas.Left="18"
                 Canvas.Top="338"
-                Style="{StaticResource ButtonNumberBadge}">
+                Theme="{StaticResource ButtonNumberBadge}">
             <TextBlock Text="4"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
@@ -116,7 +131,7 @@
         </Border>
         <Border Canvas.Left="17"
                 Canvas.Top="260"
-                Style="{StaticResource ButtonNumberBadge}">
+                Theme="{StaticResource ButtonNumberBadge}">
             <TextBlock Text="5"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
@@ -125,7 +140,7 @@
         </Border>
         <Border Canvas.Left="132"
                 Canvas.Top="118"
-                Style="{StaticResource ButtonNumberBadge}">
+                Theme="{StaticResource ButtonNumberBadge}">
             <TextBlock Text="6"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
@@ -134,7 +149,7 @@
         </Border>
         <Border Canvas.Left="239"
                 Canvas.Top="118"
-                Style="{StaticResource ButtonNumberBadge}">
+                Theme="{StaticResource ButtonNumberBadge}">
             <TextBlock Text="7"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"

@@ -1,13 +1,13 @@
 using ProClickConfigurator.Core.Models;
 using ProClickConfigurator.Core.Profiles;
 using ProClickConfigurator.Core.Protocol;
-using ProClickConfigurator.Device;
+using ProClickConfigurator.Core.Device;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Text.Json;
 
-namespace ProClickConfigurator.ViewModels;
+namespace ProClickConfigurator.Core.ViewModels;
 
 public sealed class MainViewModel : ObservableObject, IDisposable
 {
@@ -17,6 +17,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     private MouseProfile _profile = MouseProfile.CreateDefault();
     private ProClickMiniDevice? _device;
     private ButtonAssignmentViewModel? _selectedAssignment;
+    private string? _selectedPresetName;
     private bool _isBusy;
     private bool _isConnected;
     private bool _canWriteOnboardAssignments;
@@ -41,7 +42,9 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         RefreshDeviceCommand = new AsyncRelayCommand(RefreshFromMouseAsync, () => !IsBusy);
         ApplyToMouseCommand = new AsyncRelayCommand(ApplyToMouseAsync, () => IsConnected && !IsBusy);
         SaveProfileCommand = new AsyncRelayCommand(SaveProfileAsync, () => !IsBusy);
-        ReloadProfileCommand = new AsyncRelayCommand(ReloadProfileAsync, () => !IsBusy);
+        LoadPresetCommand = new AsyncRelayCommand(
+            LoadPresetAsync,
+            () => !IsBusy && !string.IsNullOrWhiteSpace(SelectedPresetName));
         AddDpiStageCommand = new RelayCommand(
             _ => AddDpiStage(),
             _ => DpiStages.Count < ProClickMiniDevice.MaximumDpiStages);
@@ -66,6 +69,8 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<ButtonAssignmentViewModel> ButtonAssignments { get; } = [];
 
+    public ObservableCollection<string> PresetNames { get; } = [];
+
     public IReadOnlyList<int> PollingRates { get; } = [125, 500, 1000];
 
     public IReadOnlyList<int> IdleTimeOptions { get; } = [60, 120, 180, 300, 600, 900];
@@ -74,7 +79,9 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         FilterActions(allowHyperShiftModifier: false);
 
     public IReadOnlyList<WindowsActionDefinition> AvailablePrimaryActions =>
-        FilterActions(SelectedAssignment?.CanBeHyperShiftModifier != false);
+        SelectedAssignment?.IsPrimaryActionLocked == true
+            ? [WindowsActionCatalog.Get(WindowsActionCatalog.LeftClickId)]
+            : FilterActions(SelectedAssignment?.CanBeHyperShiftModifier != false);
 
     public AsyncRelayCommand RefreshDeviceCommand { get; }
 
@@ -82,7 +89,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
     public AsyncRelayCommand SaveProfileCommand { get; }
 
-    public AsyncRelayCommand ReloadProfileCommand { get; }
+    public AsyncRelayCommand LoadPresetCommand { get; }
 
     public RelayCommand AddDpiStageCommand { get; }
 
@@ -115,6 +122,18 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             if (SetProperty(ref _profileName, value))
             {
                 SyncProfileFromView();
+            }
+        }
+    }
+
+    public string? SelectedPresetName
+    {
+        get => _selectedPresetName;
+        set
+        {
+            if (SetProperty(ref _selectedPresetName, value))
+            {
+                LoadPresetCommand.RaiseCanExecuteChanged();
             }
         }
     }
@@ -254,7 +273,11 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             {
                 _profile = await _profileStore.LoadAsync();
                 ApplyProfileToView(_profile);
-                StatusMessage = "Local profile loaded.";
+                var unreadablePresetCount = await RefreshPresetNamesAsync();
+                StatusMessage = unreadablePresetCount == 0
+                    ? "Local profile loaded."
+                    : $"Local profile loaded; {unreadablePresetCount} unreadable preset "
+                        + $"{(unreadablePresetCount == 1 ? "file was" : "files were")} skipped.";
             },
             exception =>
             {
@@ -410,20 +433,54 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             async () =>
             {
                 SyncProfileFromView();
+                await _profileStore.SavePresetAsync(_profile);
                 await _profileStore.SaveAsync(_profile);
-                StatusMessage = "Assignments and settings saved to the local app profile.";
+                var unreadablePresetCount = await RefreshPresetNamesAsync();
+                SelectedPresetName = _profile.Name;
+                StatusMessage = unreadablePresetCount == 0
+                    ? $"Preset '{_profile.Name}' saved."
+                    : $"Preset '{_profile.Name}' saved; {unreadablePresetCount} unreadable preset "
+                        + $"{(unreadablePresetCount == 1 ? "file was" : "files were")} skipped.";
             });
     }
 
-    private async Task ReloadProfileAsync()
+    private async Task LoadPresetAsync()
     {
+        var presetName = SelectedPresetName;
+        if (string.IsNullOrWhiteSpace(presetName))
+        {
+            return;
+        }
+
         await RunGuardedAsync(
             async () =>
             {
-                _profile = await _profileStore.LoadAsync();
+                _profile = await _profileStore.LoadPresetAsync(presetName);
                 ApplyProfileToView(_profile);
-                StatusMessage = "Local app profile reloaded.";
+                await _profileStore.SaveAsync(_profile);
+                StatusMessage = $"Preset '{_profile.Name}' loaded.";
             });
+    }
+
+    private async Task<int> RefreshPresetNamesAsync()
+    {
+        var selectedName = SelectedPresetName;
+        var catalog = await _profileStore.ReadPresetCatalogAsync();
+        var names = catalog.Names;
+        PresetNames.Clear();
+        foreach (var name in names)
+        {
+            PresetNames.Add(name);
+        }
+
+        SelectedPresetName = selectedName is not null
+            && names.Contains(selectedName, StringComparer.OrdinalIgnoreCase)
+                ? names.First(name => string.Equals(
+                    name,
+                    selectedName,
+                    StringComparison.OrdinalIgnoreCase))
+                : names.FirstOrDefault();
+        return catalog.UnreadableCount;
     }
 
     private async Task RunGuardedAsync(
@@ -446,7 +503,8 @@ public sealed class MainViewModel : ObservableObject, IDisposable
                 or UnauthorizedAccessException
                 or InvalidOperationException
                 or ArgumentException
-                or JsonException)
+                or JsonException
+                or InvalidDataException)
         {
             if (errorHandler is null)
             {
@@ -644,7 +702,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         RefreshDeviceCommand.RaiseCanExecuteChanged();
         ApplyToMouseCommand.RaiseCanExecuteChanged();
         SaveProfileCommand.RaiseCanExecuteChanged();
-        ReloadProfileCommand.RaiseCanExecuteChanged();
+        LoadPresetCommand.RaiseCanExecuteChanged();
     }
 
     private IReadOnlyList<WindowsActionDefinition> FilterActions(bool allowHyperShiftModifier)
