@@ -11,9 +11,10 @@ A collection of demos showcasing **Data Virtualization** capabilities in SQL —
 
 ## Utilities
 
-- [Pro Click Mini Configurator](ProClickConfigurator/) — a lightweight Windows
-  configurator for DPI, polling, battery/power settings, button assignments,
-  and the onboard HyperShift layer on the Razer Pro Click Mini.
+- [Pro Click Mini Configurator](https://github.com/HugoMSFT/ProClickConfigurator)
+  — a lightweight Windows and macOS configurator for DPI, polling,
+  battery/power settings, button assignments, and the onboard HyperShift layer
+  on the Razer Pro Click Mini.
 
 ## Getting Started
 
