@@ -9,6 +9,13 @@ A collection of demos showcasing **Data Virtualization** capabilities in SQL —
 | [Seattle Safety](AzureSQLDatabase/SeattleSafety/) | Azure SQL Database | End-to-end walkthrough using a public 911 dispatch dataset: ad-hoc exploration with `OPENROWSET`, schema discovery, `filepath()`/`filename()`, data ingestion, external tables, hybrid queries, geospatial analysis, and hot/cold data tiering. |
 | [Azure Open Datasets](AzureDatasets/) | Azure SQL Database | A catalog review of every [Azure Open Dataset](https://learn.microsoft.com/azure/open-datasets/dataset-catalog) with a "load into SQL?" verdict, plus ready-to-run scripts for 17 tabular datasets (NYC Taxi, BLS labor & economics, Census population, city safety, public holidays). Each has `OPENROWSET` ingest into a per-dataset database, an external table, and OPENROWSET-vs-external view comparisons. |
 
+## Utilities
+
+- [Pro Click Mini Configurator](https://github.com/HugoMSFT/ProClickConfigurator)
+  — a lightweight Windows and macOS configurator for DPI, polling,
+  battery/power settings, button assignments, and the onboard HyperShift layer
+  on the Razer Pro Click Mini.
+
 ## Getting Started
 
 1. Provision an **Azure SQL Database** — Data Virtualization is **enabled by default** on Azure SQL Database, no `sp_configure` needed. (Only required for SQL Server on-prem / Managed Instance. See [Data virtualization overview](https://learn.microsoft.com/azure/azure-sql/database/data-virtualization-overview).)
