@@ -1,0 +1,123 @@
+-- =============================================================================
+-- Hidden Gems 06: Private lake, Delta 1.0, and JSON patterns
+-- Platform: Azure SQL Database data virtualization (Preview)
+-- =============================================================================
+-- This is a copy-and-fill template because it needs storage owned by the reader.
+-- Replace every <placeholder> before uncommenting a section.
+--
+-- Important Azure SQL Database boundaries as of July 2026:
+--   * Use abs:// for Blob and adls:// for ADLS Gen2, not https://.
+--   * Managed Identity needs Storage Blob Data Reader and no database master key.
+--   * Managed Identity cannot cross Entra tenants; use SAS in that case.
+--   * DELTA means Delta Lake 1.0. Newer features such as delete vectors,
+--     v2 checkpoints, and post-1.0 column-rename behavior are unsupported.
+--   * FORMAT = 'JSONL' is not supported. Read JSON through text/CSV instead.
+--   * CETAS is not supported in Azure SQL Database.
+-- =============================================================================
+
+-- -----------------------------------------------------------------------------
+-- 1. Secretless private ADLS Gen2 access.
+-- -----------------------------------------------------------------------------
+-- CREATE DATABASE SCOPED CREDENTIAL PrivateLakeManagedIdentity
+-- WITH IDENTITY = 'Managed Identity';
+-- GO
+--
+-- CREATE EXTERNAL DATA SOURCE PrivateLake
+-- WITH (
+--     LOCATION = 'adls://<container>@<account>.dfs.core.windows.net',
+--     CREDENTIAL = PrivateLakeManagedIdentity
+-- );
+-- GO
+
+-- -----------------------------------------------------------------------------
+-- 2. Query a Delta Lake 1.0 table directly from its table root.
+-- -----------------------------------------------------------------------------
+-- SELECT TOP (100) *
+-- FROM OPENROWSET(
+--     BULK '<path-to-delta-table-root>',
+--     DATA_SOURCE = 'PrivateLake',
+--     FORMAT = 'DELTA'
+-- ) AS delta_rows;
+-- GO
+--
+-- CREATE EXTERNAL FILE FORMAT Delta10HiddenGems
+-- WITH (FORMAT_TYPE = DELTA);
+-- GO
+--
+-- CREATE EXTERNAL TABLE dbo.DeltaTable_HiddenGems
+-- (
+--     id          BIGINT,
+--     eventTime   DATETIME2(7),
+--     category    VARCHAR(100),
+--     amount      DECIMAL(19, 4)
+-- )
+-- WITH (
+--     LOCATION = '<path-to-delta-table-root>',
+--     DATA_SOURCE = PrivateLake,
+--     FILE_FORMAT = Delta10HiddenGems
+-- );
+-- GO
+
+-- -----------------------------------------------------------------------------
+-- 3. Read one JSON array/document as text, then shred it with OPENJSON.
+-- -----------------------------------------------------------------------------
+-- SELECT
+--     parsed.event_id,
+--     parsed.event_time,
+--     parsed.category,
+--     parsed.amount
+-- FROM OPENROWSET(
+--     BULK '<path>/events.json',
+--     DATA_SOURCE = 'PrivateLake',
+--     SINGLE_CLOB
+-- ) AS raw_json
+-- CROSS APPLY OPENJSON(raw_json.BulkColumn)
+-- WITH (
+--     event_id   BIGINT         '$.id',
+--     event_time DATETIME2(7)   '$.eventTime',
+--     category   VARCHAR(100)   '$.category',
+--     amount     DECIMAL(19, 4) '$.metrics.amount'
+-- ) AS parsed;
+-- GO
+
+-- -----------------------------------------------------------------------------
+-- 4. JSON-lines workaround: make each line one CSV row by choosing a field
+--    delimiter byte that cannot occur in the documents, then parse each row.
+--    Change terminators if the producer uses a different line ending.
+-- -----------------------------------------------------------------------------
+-- SELECT
+--     parsed.event_id,
+--     parsed.event_time,
+--     parsed.category
+-- FROM OPENROWSET(
+--     BULK '<path>/*.jsonl',
+--     DATA_SOURCE = 'PrivateLake',
+--     FORMAT = 'CSV',
+--     FIELDTERMINATOR = '0x0b',
+--     ROWTERMINATOR = '0x0a'
+-- )
+-- WITH (
+--     json_document NVARCHAR(MAX)
+-- ) AS json_lines
+-- CROSS APPLY OPENJSON(json_lines.json_document)
+-- WITH (
+--     event_id   BIGINT       '$.id',
+--     event_time DATETIME2(7) '$.eventTime',
+--     category   VARCHAR(100) '$.category'
+-- ) AS parsed;
+-- GO
+
+-- -----------------------------------------------------------------------------
+-- 5. SAS fallback for cross-tenant storage.
+--    Remove the leading question mark from the SAS token.
+-- -----------------------------------------------------------------------------
+-- CREATE MASTER KEY
+-- ENCRYPTION BY PASSWORD = '<strong-database-master-key-password>';
+-- GO
+--
+-- CREATE DATABASE SCOPED CREDENTIAL PrivateLakeSas
+-- WITH (
+--     IDENTITY = 'SHARED ACCESS SIGNATURE',
+--     SECRET = '<sas-token-without-leading-question-mark>'
+-- );
+-- GO
