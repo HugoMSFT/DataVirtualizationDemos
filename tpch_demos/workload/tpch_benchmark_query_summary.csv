@@ -1,0 +1,31 @@
+platform,schema,storage_type,query_id,query_name,median_ms,min_ms,max_ms
+azure,dbo,clustered columnstore,1,shipping-mode summary,3699.636,3688.542,4834.749
+azure,dbo,clustered columnstore,2,monthly customer-segment orders,1995.420,1846.171,2997.024
+azure,dbo,clustered columnstore,3,regional realized revenue,1421.711,1384.307,1697.763
+azure,dbo,clustered columnstore,4,supplier inventory value,2222.005,660.566,3205.832
+azure,dbo,clustered columnstore,5,late-delivery analysis,2921.540,2834.804,3889.336
+azure,ext,Parquet external,1,shipping-mode summary,5345.152,4420.901,10743.811
+azure,ext,Parquet external,2,monthly customer-segment orders,2825.520,2806.450,8759.856
+azure,ext,Parquet external,3,regional realized revenue,5833.909,5667.588,12447.813
+azure,ext,Parquet external,4,supplier inventory value,2364.012,2301.092,10205.660
+azure,ext,Parquet external,5,late-delivery analysis,11624.252,11460.721,12787.664
+azure,rs,rowstore,1,shipping-mode summary,49072.209,49030.229,55454.279
+azure,rs,rowstore,2,monthly customer-segment orders,2631.700,2578.088,16419.664
+azure,rs,rowstore,3,regional realized revenue,50543.500,50431.656,50796.265
+azure,rs,rowstore,4,supplier inventory value,8807.300,8799.988,10595.752
+azure,rs,rowstore,5,late-delivery analysis,50870.813,50832.924,51165.044
+vm,dbo,clustered columnstore,1,shipping-mode summary,1878.125,1317.799,2179.945
+vm,dbo,clustered columnstore,2,monthly customer-segment orders,940.440,937.442,1119.410
+vm,dbo,clustered columnstore,3,regional realized revenue,1696.973,1444.738,2012.728
+vm,dbo,clustered columnstore,4,supplier inventory value,260.185,193.143,357.890
+vm,dbo,clustered columnstore,5,late-delivery analysis,3165.412,2512.745,3866.619
+vm,ext,Parquet external,1,shipping-mode summary,3648.890,3485.391,7697.117
+vm,ext,Parquet external,2,monthly customer-segment orders,1581.771,1484.477,3930.659
+vm,ext,Parquet external,3,regional realized revenue,4999.346,4861.588,9795.486
+vm,ext,Parquet external,4,supplier inventory value,748.844,727.066,4066.486
+vm,ext,Parquet external,5,late-delivery analysis,11447.587,11015.724,11740.719
+vm,rs,rowstore,1,shipping-mode summary,8659.738,8603.407,9640.906
+vm,rs,rowstore,2,monthly customer-segment orders,2515.355,2066.570,5282.015
+vm,rs,rowstore,3,regional realized revenue,26345.747,26338.369,26503.774
+vm,rs,rowstore,4,supplier inventory value,4148.461,1269.399,5971.817
+vm,rs,rowstore,5,late-delivery analysis,26140.264,24902.872,26283.731

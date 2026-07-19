@@ -1,0 +1,2 @@
+tpch_demos/workload/*.csv whitespace=cr-at-eol
+tpch_demos/schemas/tpchsf*_schema.sql whitespace=-blank-at-eof

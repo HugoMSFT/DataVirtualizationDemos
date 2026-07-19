@@ -6,6 +6,7 @@ A collection of demos showcasing **Data Virtualization** capabilities in SQL —
 
 | Demo | Platform | Description |
 |------|----------|-------------|
+| [TPC-H SF10 data virtualization](tpch_demos/) | SQL Server 2025 and Azure SQL Database | Complete SF10 workflow using HammerDB 5.0, columnstore/rowstore/heap layouts, Blob backups and BACPACs, CETAS Parquet export, anonymous external tables, exact schema DDL, validation, and a reproducible read-only benchmark. |
 | [Seattle Safety](AzureSQLDatabase/SeattleSafety/) | Azure SQL Database | End-to-end walkthrough using a public 911 dispatch dataset: ad-hoc exploration with `OPENROWSET`, schema discovery, `filepath()`/`filename()`, data ingestion, external tables, hybrid queries, geospatial analysis, and hot/cold data tiering. |
 | [Azure Open Datasets](AzureDatasets/) | Azure SQL Database | A catalog review of every [Azure Open Dataset](https://learn.microsoft.com/azure/open-datasets/dataset-catalog) with a "load into SQL?" verdict, plus ready-to-run scripts for 17 tabular datasets (NYC Taxi, BLS labor & economics, Census population, city safety, public holidays). Each has `OPENROWSET` ingest into a per-dataset database, an external table, and OPENROWSET-vs-external view comparisons. |
 
