@@ -6,27 +6,20 @@ A collection of demos showcasing **Data Virtualization** capabilities in SQL —
 
 | Demo | Platform | Description |
 |------|----------|-------------|
-| [TPC-H SF10 data virtualization](tpch_demos/) | SQL Server 2025 and Azure SQL Database | Complete SF10 workflow using HammerDB 5.0, columnstore/rowstore/heap layouts, Blob backups and BACPACs, CETAS Parquet export, anonymous external tables, exact schema DDL, validation, and a reproducible read-only benchmark. |
+| [TPC-H SF10 data virtualization](tpch_demos/) | SQL Server 2025 and Azure SQL Database | Consumer-ready public SF10 backups, BACPACs, and anonymous Parquet data with restore/import instructions, external tables, validation, schema references, and sample workload results. |
 | [Seattle Safety](AzureSQLDatabase/SeattleSafety/) | Azure SQL Database | End-to-end walkthrough using a public 911 dispatch dataset: ad-hoc exploration with `OPENROWSET`, schema discovery, `filepath()`/`filename()`, data ingestion, external tables, hybrid queries, geospatial analysis, and hot/cold data tiering. |
-| [Azure Open Datasets](AzureDatasets/) | Azure SQL Database | A catalog review of every [Azure Open Dataset](https://learn.microsoft.com/azure/open-datasets/dataset-catalog) with a "load into SQL?" verdict, plus ready-to-run scripts for 17 tabular datasets (NYC Taxi, BLS labor & economics, Census population, city safety, public holidays). Each has `OPENROWSET` ingest into a per-dataset database, an external table, and OPENROWSET-vs-external view comparisons. |
-
-## Utilities
-
-- [Pro Click Mini Configurator](https://github.com/HugoMSFT/ProClickConfigurator)
-  — a lightweight Windows and macOS configurator for DPI, polling,
-  battery/power settings, button assignments, and the onboard HyperShift layer
-  on the Razer Pro Click Mini.
 
 ## Getting Started
 
-1. Provision an **Azure SQL Database** — Data Virtualization is **enabled by default** on Azure SQL Database, no `sp_configure` needed. (Only required for SQL Server on-prem / Managed Instance. See [Data virtualization overview](https://learn.microsoft.com/azure/azure-sql/database/data-virtualization-overview).)
-2. Open the demo folder and run the scripts in order (01 → 05)
-3. Each script is self-contained with comments explaining every step
-4. No storage credentials are needed — all demo data lives in public blob containers
+1. Choose a demo from the catalog and follow its README.
+2. Provision the SQL target described by that demo.
+3. Run the scripts in the documented order.
+4. All source data is public; storage credentials are not required for reads.
 
 ## Object naming convention
 
-Scripts follow a consistent suffix convention so each object's tier is obvious:
+The Seattle Safety scripts use a consistent suffix convention so each
+object's tier is obvious:
 
 | Suffix | Meaning |
 |--------|---------|
