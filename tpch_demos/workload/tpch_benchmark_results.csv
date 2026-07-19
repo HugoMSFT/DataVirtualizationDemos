@@ -1,0 +1,109 @@
+platform,database_name,schema,storage_type,iteration,query_id,query_name,duration_ms,result_rows,result_checksum
+azure,tpchsf100,dbo,clustered columnstore,1,1,shipping-mode summary,4834.749,21,-350897271
+azure,tpchsf100,dbo,clustered columnstore,1,2,monthly customer-segment orders,2997.024,170,-1410868670
+azure,tpchsf100,dbo,clustered columnstore,1,3,regional realized revenue,1697.763,25,-150029891
+azure,tpchsf100,dbo,clustered columnstore,1,4,supplier inventory value,3205.832,125,1263177322
+azure,tpchsf100,dbo,clustered columnstore,1,5,late-delivery analysis,2834.804,35,86663494
+azure,tpchsf100,dbo,clustered columnstore,1,99,TOTAL,15570.172,,
+azure,tpchsf100,ext,Parquet external,1,1,shipping-mode summary,10743.811,21,-1282833076
+azure,tpchsf100,ext,Parquet external,1,2,monthly customer-segment orders,8759.856,170,1740504025
+azure,tpchsf100,ext,Parquet external,1,3,regional realized revenue,12447.813,25,-887525746
+azure,tpchsf100,ext,Parquet external,1,4,supplier inventory value,10205.660,125,-1442836488
+azure,tpchsf100,ext,Parquet external,1,5,late-delivery analysis,11624.252,35,-949495029
+azure,tpchsf100,ext,Parquet external,1,99,TOTAL,53781.392,,
+azure,tpchsf100,rs,rowstore,1,1,shipping-mode summary,55454.279,21,-350897271
+azure,tpchsf100,rs,rowstore,1,2,monthly customer-segment orders,16419.664,170,-1410868670
+azure,tpchsf100,rs,rowstore,1,3,regional realized revenue,50796.265,25,-150029891
+azure,tpchsf100,rs,rowstore,1,4,supplier inventory value,10595.752,125,1263177322
+azure,tpchsf100,rs,rowstore,1,5,late-delivery analysis,50870.813,35,86663494
+azure,tpchsf100,rs,rowstore,1,99,TOTAL,184136.773,,
+azure,tpchsf100,dbo,clustered columnstore,2,1,shipping-mode summary,3699.636,21,-350897271
+azure,tpchsf100,dbo,clustered columnstore,2,2,monthly customer-segment orders,1995.420,170,-1410868670
+azure,tpchsf100,dbo,clustered columnstore,2,3,regional realized revenue,1421.711,25,-150029891
+azure,tpchsf100,dbo,clustered columnstore,2,4,supplier inventory value,2222.005,125,1263177322
+azure,tpchsf100,dbo,clustered columnstore,2,5,late-delivery analysis,3889.336,35,86663494
+azure,tpchsf100,dbo,clustered columnstore,2,99,TOTAL,13228.108,,
+azure,tpchsf100,ext,Parquet external,2,1,shipping-mode summary,5345.152,21,-1282833076
+azure,tpchsf100,ext,Parquet external,2,2,monthly customer-segment orders,2806.450,170,1740504025
+azure,tpchsf100,ext,Parquet external,2,3,regional realized revenue,5833.909,25,-887525746
+azure,tpchsf100,ext,Parquet external,2,4,supplier inventory value,2364.012,125,-1442836488
+azure,tpchsf100,ext,Parquet external,2,5,late-delivery analysis,11460.721,35,-949495029
+azure,tpchsf100,ext,Parquet external,2,99,TOTAL,27810.244,,
+azure,tpchsf100,rs,rowstore,2,1,shipping-mode summary,49072.209,21,-350897271
+azure,tpchsf100,rs,rowstore,2,2,monthly customer-segment orders,2631.700,170,-1410868670
+azure,tpchsf100,rs,rowstore,2,3,regional realized revenue,50543.500,25,-150029891
+azure,tpchsf100,rs,rowstore,2,4,supplier inventory value,8799.988,125,1263177322
+azure,tpchsf100,rs,rowstore,2,5,late-delivery analysis,50832.924,35,86663494
+azure,tpchsf100,rs,rowstore,2,99,TOTAL,161880.321,,
+azure,tpchsf100,dbo,clustered columnstore,3,1,shipping-mode summary,3688.542,21,-350897271
+azure,tpchsf100,dbo,clustered columnstore,3,2,monthly customer-segment orders,1846.171,170,-1410868670
+azure,tpchsf100,dbo,clustered columnstore,3,3,regional realized revenue,1384.307,25,-150029891
+azure,tpchsf100,dbo,clustered columnstore,3,4,supplier inventory value,660.566,125,1263177322
+azure,tpchsf100,dbo,clustered columnstore,3,5,late-delivery analysis,2921.540,35,86663494
+azure,tpchsf100,dbo,clustered columnstore,3,99,TOTAL,10501.126,,
+azure,tpchsf100,ext,Parquet external,3,1,shipping-mode summary,4420.901,21,-1282833076
+azure,tpchsf100,ext,Parquet external,3,2,monthly customer-segment orders,2825.520,170,1740504025
+azure,tpchsf100,ext,Parquet external,3,3,regional realized revenue,5667.588,25,-887525746
+azure,tpchsf100,ext,Parquet external,3,4,supplier inventory value,2301.092,125,-1442836488
+azure,tpchsf100,ext,Parquet external,3,5,late-delivery analysis,12787.664,35,-949495029
+azure,tpchsf100,ext,Parquet external,3,99,TOTAL,28002.765,,
+azure,tpchsf100,rs,rowstore,3,1,shipping-mode summary,49030.229,21,-350897271
+azure,tpchsf100,rs,rowstore,3,2,monthly customer-segment orders,2578.088,170,-1410868670
+azure,tpchsf100,rs,rowstore,3,3,regional realized revenue,50431.656,25,-150029891
+azure,tpchsf100,rs,rowstore,3,4,supplier inventory value,8807.300,125,1263177322
+azure,tpchsf100,rs,rowstore,3,5,late-delivery analysis,51165.044,35,86663494
+azure,tpchsf100,rs,rowstore,3,99,TOTAL,162012.317,,
+vm,tpchsf10_columnstore,dbo,clustered columnstore,1,1,shipping-mode summary,1317.799,21,-1282833076
+vm,tpchsf10_columnstore,dbo,clustered columnstore,1,2,monthly customer-segment orders,940.440,170,1740504025
+vm,tpchsf10_columnstore,dbo,clustered columnstore,1,3,regional realized revenue,2012.728,25,-887525746
+vm,tpchsf10_columnstore,dbo,clustered columnstore,1,4,supplier inventory value,260.185,125,-1442836488
+vm,tpchsf10_columnstore,dbo,clustered columnstore,1,5,late-delivery analysis,3165.412,35,-949495029
+vm,tpchsf10_columnstore,dbo,clustered columnstore,1,99,TOTAL,7696.564,,
+vm,tpchsf10_columnstore,ext,Parquet external,1,1,shipping-mode summary,7697.117,21,-1282833076
+vm,tpchsf10_columnstore,ext,Parquet external,1,2,monthly customer-segment orders,3930.659,170,1740504025
+vm,tpchsf10_columnstore,ext,Parquet external,1,3,regional realized revenue,9795.486,25,-887525746
+vm,tpchsf10_columnstore,ext,Parquet external,1,4,supplier inventory value,4066.486,125,-1442836488
+vm,tpchsf10_columnstore,ext,Parquet external,1,5,late-delivery analysis,11015.724,35,-949495029
+vm,tpchsf10_columnstore,ext,Parquet external,1,99,TOTAL,36505.472,,
+vm,tpchsf10_columnstore,rs,rowstore,1,1,shipping-mode summary,8659.738,21,-1282833076
+vm,tpchsf10_columnstore,rs,rowstore,1,2,monthly customer-segment orders,2515.355,170,1740504025
+vm,tpchsf10_columnstore,rs,rowstore,1,3,regional realized revenue,26345.747,25,-887525746
+vm,tpchsf10_columnstore,rs,rowstore,1,4,supplier inventory value,5971.817,125,-1442836488
+vm,tpchsf10_columnstore,rs,rowstore,1,5,late-delivery analysis,26283.731,35,-949495029
+vm,tpchsf10_columnstore,rs,rowstore,1,99,TOTAL,69776.388,,
+vm,tpchsf10_columnstore,dbo,clustered columnstore,2,1,shipping-mode summary,2179.945,21,-1282833076
+vm,tpchsf10_columnstore,dbo,clustered columnstore,2,2,monthly customer-segment orders,1119.410,170,1740504025
+vm,tpchsf10_columnstore,dbo,clustered columnstore,2,3,regional realized revenue,1696.973,25,-887525746
+vm,tpchsf10_columnstore,dbo,clustered columnstore,2,4,supplier inventory value,193.143,125,-1442836488
+vm,tpchsf10_columnstore,dbo,clustered columnstore,2,5,late-delivery analysis,2512.745,35,-949495029
+vm,tpchsf10_columnstore,dbo,clustered columnstore,2,99,TOTAL,7702.216,,
+vm,tpchsf10_columnstore,ext,Parquet external,2,1,shipping-mode summary,3485.391,21,-1282833076
+vm,tpchsf10_columnstore,ext,Parquet external,2,2,monthly customer-segment orders,1484.477,170,1740504025
+vm,tpchsf10_columnstore,ext,Parquet external,2,3,regional realized revenue,4999.346,25,-887525746
+vm,tpchsf10_columnstore,ext,Parquet external,2,4,supplier inventory value,748.844,125,-1442836488
+vm,tpchsf10_columnstore,ext,Parquet external,2,5,late-delivery analysis,11447.587,35,-949495029
+vm,tpchsf10_columnstore,ext,Parquet external,2,99,TOTAL,22165.645,,
+vm,tpchsf10_columnstore,rs,rowstore,2,1,shipping-mode summary,9640.906,21,-1282833076
+vm,tpchsf10_columnstore,rs,rowstore,2,2,monthly customer-segment orders,5282.015,170,1740504025
+vm,tpchsf10_columnstore,rs,rowstore,2,3,regional realized revenue,26338.369,25,-887525746
+vm,tpchsf10_columnstore,rs,rowstore,2,4,supplier inventory value,4148.461,125,-1442836488
+vm,tpchsf10_columnstore,rs,rowstore,2,5,late-delivery analysis,26140.264,35,-949495029
+vm,tpchsf10_columnstore,rs,rowstore,2,99,TOTAL,71550.015,,
+vm,tpchsf10_columnstore,dbo,clustered columnstore,3,1,shipping-mode summary,1878.125,21,-1282833076
+vm,tpchsf10_columnstore,dbo,clustered columnstore,3,2,monthly customer-segment orders,937.442,170,1740504025
+vm,tpchsf10_columnstore,dbo,clustered columnstore,3,3,regional realized revenue,1444.738,25,-887525746
+vm,tpchsf10_columnstore,dbo,clustered columnstore,3,4,supplier inventory value,357.890,125,-1442836488
+vm,tpchsf10_columnstore,dbo,clustered columnstore,3,5,late-delivery analysis,3866.619,35,-949495029
+vm,tpchsf10_columnstore,dbo,clustered columnstore,3,99,TOTAL,8484.814,,
+vm,tpchsf10_columnstore,ext,Parquet external,3,1,shipping-mode summary,3648.890,21,-1282833076
+vm,tpchsf10_columnstore,ext,Parquet external,3,2,monthly customer-segment orders,1581.771,170,1740504025
+vm,tpchsf10_columnstore,ext,Parquet external,3,3,regional realized revenue,4861.588,25,-887525746
+vm,tpchsf10_columnstore,ext,Parquet external,3,4,supplier inventory value,727.066,125,-1442836488
+vm,tpchsf10_columnstore,ext,Parquet external,3,5,late-delivery analysis,11740.719,35,-949495029
+vm,tpchsf10_columnstore,ext,Parquet external,3,99,TOTAL,22560.034,,
+vm,tpchsf10_columnstore,rs,rowstore,3,1,shipping-mode summary,8603.407,21,-1282833076
+vm,tpchsf10_columnstore,rs,rowstore,3,2,monthly customer-segment orders,2066.570,170,1740504025
+vm,tpchsf10_columnstore,rs,rowstore,3,3,regional realized revenue,26503.774,25,-887525746
+vm,tpchsf10_columnstore,rs,rowstore,3,4,supplier inventory value,1269.399,125,-1442836488
+vm,tpchsf10_columnstore,rs,rowstore,3,5,late-delivery analysis,24902.872,35,-949495029
+vm,tpchsf10_columnstore,rs,rowstore,3,99,TOTAL,63346.022,,

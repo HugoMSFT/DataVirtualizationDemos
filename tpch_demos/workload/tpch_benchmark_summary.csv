@@ -1,0 +1,7 @@
+platform,schema,storage_type,runs,first_run_ms,median_ms,min_ms,max_ms,mean_ms,relative_to_columnstore
+vm,dbo,clustered columnstore,3,7696.564,7702.216,7696.564,8484.814,7961.198,1.000
+vm,rs,rowstore,3,69776.388,69776.388,63346.022,71550.015,68224.142,9.059
+vm,ext,Parquet external,3,36505.472,22560.034,22165.645,36505.472,27077.050,2.929
+azure,dbo,clustered columnstore,3,15570.172,13228.108,10501.126,15570.172,13099.802,1.000
+azure,rs,rowstore,3,184136.773,162012.317,161880.321,184136.773,169343.137,12.248
+azure,ext,Parquet external,3,53781.392,28002.765,27810.244,53781.392,36531.467,2.117
