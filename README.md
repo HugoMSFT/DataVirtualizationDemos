@@ -6,7 +6,7 @@ A collection of demos showcasing **Data Virtualization** capabilities in SQL —
 
 | Demo | Platform | Description |
 |------|----------|-------------|
-| [TPC-H SF10 data virtualization](tpch_demos/) | SQL Server 2025 and Azure SQL Database | Consumer-ready public SF10 backups, BACPACs, and anonymous Parquet data with restore/import instructions, external tables, validation, schema references, and sample workload results. |
+| [HammerDB TPROC-H SF10 data virtualization](tpch_demos/) | SQL Server 2025 and Azure SQL Database | Public TPROC-H-generated SF10 backups, BACPACs, and anonymous Parquet data with restore/import instructions, validation, and sample workload results. This is not an official TPC-H data set or benchmark. |
 | [Seattle Safety](AzureSQLDatabase/SeattleSafety/) | Azure SQL Database | End-to-end walkthrough using a public 911 dispatch dataset: ad-hoc exploration with `OPENROWSET`, schema discovery, `filepath()`/`filename()`, data ingestion, external tables, hybrid queries, geospatial analysis, and hot/cold data tiering. |
 
 ## Getting Started
