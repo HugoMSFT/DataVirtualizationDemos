@@ -1,4 +1,0 @@
-#!/bin/sh
-set -eu
-
-exec /opt/mssql-tools18/bin/bcp "$@"

@@ -1,38 +1,40 @@
-# TPC-H SF10 data-virtualization demo
+# TPC-H SF10 public data-virtualization demo
 
-This demo records an end-to-end SF10 workflow built with HammerDB 5.0,
-SQL Server 2025, Azure SQL Database, Azure Blob Storage, Parquet, and external
-tables. It includes the reusable build/export/validation scripts, exact final
-schema-only DDL, and the aggregated results from a small read-only analytic
-workload.
+This demo is a consumer-focused walkthrough for a public TPC-H-compatible
+SF10 data set. You can use the data in any of three ways:
 
-The HammerDB data generator calls this workload **TPROC-H**. This repository
-uses the familiar TPC-H table names to describe the resulting data layout, but
-the measured workload contains five original queries and is **not** an
-audited or official TPC-H benchmark result.
+1. Query the public Parquet files directly through anonymous external tables.
+2. Restore a public SQL Server `.bak`.
+3. Import a public BACPAC into SQL Server or Azure SQL Database.
 
-## Completed layouts
+No storage credential, SAS token, account key, or private endpoint is needed
+to download or query the published data. Database credentials in the examples
+authenticate only to the SQL instance you choose to use.
 
-| Target | Final database layout |
-|---|---|
-| SQL Server 2025 VM, `tpchsf10_columnstore` | `dbo`: eight clustered-columnstore tables. `rs`: eight HammerDB-style rowstore tables, 14 B-tree indexes, and 10 enabled/trusted foreign keys. `hp`: eight heaps with no indexes or foreign keys. `ext`: eight Parquet external tables. |
-| Azure SQL Database, `tpchsf100` | `dbo`: eight clustered-columnstore tables. `rs`: eight rowstore tables, 8 B-tree indexes, and 10 enabled/trusted foreign keys. `ext`: eight Parquet external tables. There is no `hp` schema. |
+The included analytic workload contains five original read-only queries. It
+does not contain official TPC-H query text, and the published measurements are
+not an audited or official TPC-H benchmark result.
 
-`tpchsf100` is the retained Azure database name, but the data was generated at
-SF10. Azure SQL rejected an attempted 64 GB `MAXSIZE` change with error 45122,
-so the database remained on the 32 GB Azure SQL Free Limit offer.
+## Public artifacts
 
-The internal data sets differ slightly because they were generated
-independently:
+### Ready-to-use databases
 
-| Data set | `lineitem` rows |
-|---|---:|
-| VM internal (`dbo`, `rs`, and `hp`) | 59,999,496 |
-| Azure internal (`dbo` and `rs`) | 60,001,203 |
-| Canonical Parquet data read by both `ext` schemas | 59,999,496 |
+| Layout | SQL Server backup | BACPAC | Approximate size |
+|---|---|---|---:|
+| Clustered columnstore | [`tpchsf10_columnstore.bak`](https://tpcpublicstorage.blob.core.windows.net/tpch/tpchsf10_columnstore.bak) | [`tpchsf10_columnstore.bacpac`](https://tpcpublicstorage.blob.core.windows.net/tpch/tpchsf10_columnstore.bacpac) | 3.62 GiB `.bak`, 3.24 GiB BACPAC |
+| Rowstore | [`tpchsf10_rowstore.bak`](https://tpcpublicstorage.blob.core.windows.net/tpch/tpchsf10_rowstore.bak) | [`tpchsf10_rowstore.bacpac`](https://tpcpublicstorage.blob.core.windows.net/tpch/tpchsf10_rowstore.bacpac) | 5.71 GiB `.bak`, 3.30 GiB BACPAC |
 
-Both external schemas intentionally read the VM rowstore-origin Parquet data.
-The shared external data source is anonymous and has no database credential:
+### Parquet sample
+
+The canonical sample is under
+[`tpch_parquet/tpchsf10_rowstore/`](https://tpcpublicstorage.blob.core.windows.net/tpch/tpch_parquet/tpchsf10_rowstore/_schema.sql).
+It contains one folder per table plus schema DDL adjacent to the Parquet
+files. An additional
+[`tpchsf10_columnstore`](https://tpcpublicstorage.blob.core.windows.net/tpch/tpch_parquet/tpchsf10_columnstore/_schema.sql)
+export is also public, but the reusable external-table scripts intentionally
+target the rowstore-origin sample.
+
+The external data source uses anonymous Blob access:
 
 ```sql
 CREATE EXTERNAL DATA SOURCE [TPCHParquetBlob]
@@ -42,37 +44,52 @@ WITH
 );
 ```
 
-## Repository contents
+### Schemas, workload, and results
 
-| Folder | Contents |
-|---|---|
-| [`hammerdb/`](hammerdb/) | HammerDB 5.0 SF10 build definitions, Docker runner, BCP shim, and stream redactor. |
-| [`database/`](database/) | VM/Azure physical-layout creation, final layout validation, and the optional standalone rowstore archive workflow. |
-| [`database/backups/`](database/backups/) | Blob backup credential helper, exact `.bak` commands, verification, and portable BACPAC export/upload helper. |
-| [`parquet/`](parquet/) | Temporary CETAS credential setup, Parquet export/validation/cleanup, adjacent DDL publication, and anonymous external-table creation. |
-| [`schemas/`](schemas/) | Schema generator plus the exact final VM and Azure schema-only DDL. |
-| [`workload/`](workload/) | Five-query workload, rotated runner, summarizer, raw aggregated CSV, total summary, and per-query summary. |
+| Artifact | Repository copy | Public copy |
+|---|---|---|
+| SQL Server final schema reference | [`tpchsf10_columnstore_schema.sql`](schemas/tpchsf10_columnstore_schema.sql) | [Public SQL](https://tpcpublicstorage.blob.core.windows.net/tpch/tpch_schemas/tpchsf10_columnstore_schema.sql) |
+| Azure SQL final schema reference | [`tpchsf100_schema.sql`](schemas/tpchsf100_schema.sql) | [Public SQL](https://tpcpublicstorage.blob.core.windows.net/tpch/tpch_schemas/tpchsf100_schema.sql) |
+| Read-only workload | [`tpch_readonly_workload.sql`](workload/tpch_readonly_workload.sql) | [Public SQL](https://tpcpublicstorage.blob.core.windows.net/tpch/workload/tpch_readonly_workload.sql) |
+| Workload runner | [`run_tpch_workload.sh`](workload/run_tpch_workload.sh) | [Published run artifact](https://tpcpublicstorage.blob.core.windows.net/tpch/workload/run_tpch_workload.sh) |
+| Result summarizer | [`summarize_tpch_workload.py`](workload/summarize_tpch_workload.py) | [Public Python](https://tpcpublicstorage.blob.core.windows.net/tpch/workload/summarize_tpch_workload.py) |
+| Aggregated query results | [`tpch_benchmark_results.csv`](workload/tpch_benchmark_results.csv) | [Public CSV](https://tpcpublicstorage.blob.core.windows.net/tpch/workload/tpch_benchmark_results.csv) |
+| Total summary | [`tpch_benchmark_summary.csv`](workload/tpch_benchmark_summary.csv) | [Public CSV](https://tpcpublicstorage.blob.core.windows.net/tpch/workload/tpch_benchmark_summary.csv) |
+| Per-query summary | [`tpch_benchmark_query_summary.csv`](workload/tpch_benchmark_query_summary.csv) | [Public CSV](https://tpcpublicstorage.blob.core.windows.net/tpch/workload/tpch_benchmark_query_summary.csv) |
+
+The schema files are references captured from the completed environments.
+They are not required when restoring a backup or importing a BACPAC.
+
+## Data set shape
+
+Every public backup, BACPAC, and the canonical Parquet sample contains these
+row counts:
+
+| Table | Rows |
+|---|---:|
+| `region` | 5 |
+| `nation` | 25 |
+| `supplier` | 100,000 |
+| `customer` | 1,500,000 |
+| `part` | 2,000,000 |
+| `partsupp` | 8,000,000 |
+| `orders` | 15,000,000 |
+| `lineitem` | 59,999,496 |
 
 ## Prerequisites
 
-- An Azure Linux host (or another Linux/macOS host) with Docker Engine.
-- HammerDB 5.0's official `linux/amd64` image:
-  `tpcorg/hammerdb:v5.0`.
-- A SQL Server 2025 instance and an Azure SQL logical server reachable from
-  the client.
-- `sqlcmd` from Microsoft SQL command-line tools for database scripts.
-- `sqlpackage`, Azure CLI, `curl`, and `unzip` for BACPAC publication.
-- Azure CLI for publishing adjacent schema DDL after CETAS.
-- A storage SAS with only the permissions and lifetime needed for CETAS or
-  SQL Server `BACKUP TO URL`. BACPAC upload uses the caller's Azure CLI login
-  and Azure RBAC instead of an account key.
+Choose only the tools needed for your path:
 
-All passwords and storage credentials are runtime inputs. Do not put them in
-this repository, command files, Docker images, or captured logs. The helpers
-fail when required values are absent and never contain a password, SAS token,
-or account key.
+- **Parquet external tables:** SQL Server 2025, or Azure SQL
+  Database, plus `sqlcmd`.
+- **Backup restore:** SQL Server and enough local storage for the database and
+  transaction log.
+- **BACPAC import:** `sqlpackage` and a SQL Server or Azure SQL target.
+- **Workload runner:** Docker and Python 3. Docker runs the Microsoft SQL
+  command-line tools image; no benchmark-generation image is required.
 
-The examples use SQL authentication:
+For SQL authentication examples, read the password without storing it in a
+file:
 
 ```bash
 export SQL_SERVER='server.example.net,1433'
@@ -82,221 +99,21 @@ printf '\n'
 export SQLCMDPASSWORD
 ```
 
-Set `SQLCMD_TRUST_SERVER_CERTIFICATE=1` only for a VM endpoint whose
-certificate you have independently decided to trust. Azure SQL should retain
-certificate validation.
+Set `SQLCMD_TRUST_SERVER_CERTIFICATE=1` only for a development SQL Server
+whose certificate you have independently chosen to trust. Do not set it for
+Azure SQL Database.
 
-## 1. Generate SF10 with HammerDB 5.0
+## Option A: query the public Parquet data
 
-Pull the version-pinned image on the Azure Linux Docker host:
+This is the fastest path because it downloads no database image.
 
-```bash
-docker pull tpcorg/hammerdb:v5.0
-```
-
-The two Python definitions select four build threads, SF10, `MAXDOP 4`,
-clustered columnstore, and BCP loading:
-
-- [`mssqls_tproch_build_sf10.py`](hammerdb/mssqls_tproch_build_sf10.py)
-  enables Azure SQL connection behavior.
-- [`mssqls_tproch_build_sqlvm_sf10.py`](hammerdb/mssqls_tproch_build_sqlvm_sf10.py)
-  enables SQL Server behavior and trusted-server-certificate mode.
-
-Create empty target databases first. The completed workflow used
-`tpchsf100` on Azure SQL and `tpchsf10_columnstore` on the VM. Then run:
+Create or choose an empty database, then run:
 
 ```bash
 cd tpch_demos
 
-# Azure SQL Database
-export MSSQL_SERVER='logical-server.database.windows.net'
-export MSSQL_DATABASE='tpchsf100'
-export MSSQL_USERNAME="$SQL_USER"
-export MSSQL_PASSWORD="$SQLCMDPASSWORD"
-./hammerdb/run_hammerdb_build.sh azure
+export SQL_DATABASE='tpch_public_parquet'
 
-# SQL Server 2025 VM
-export MSSQL_SERVER='sql-vm.example.net'
-export MSSQL_DATABASE='tpchsf10_columnstore'
-./hammerdb/run_hammerdb_build.sh sqlvm
-
-unset MSSQL_PASSWORD
-```
-
-The runner mounts the password into the container as a temporary read-only
-secret file, places [`hammerdb/bin/bcp`](hammerdb/bin/bcp) first on `PATH`,
-and filters HammerDB output through
-[`redact_stream.py`](hammerdb/redact_stream.py). Set
-`HAMMERDB_DOCKER_NETWORK` only when the container needs a non-default Docker
-network.
-
-## 2. Create the comparison layouts
-
-### SQL Server VM
-
-Run the following against the VM. The first script makes schema-identical
-heap copies in `rs` and `hp`; the second adds the exact 14-index,
-10-foreign-key rowstore design to `rs`.
-
-```bash
-sqlcmd -S "$SQL_SERVER" -d master -U "$SQL_USER" -N -C -b \
-  -i database/create_vm_benchmark_copies.sql
-
-sqlcmd -S "$SQL_SERVER" -d master -U "$SQL_USER" -N -C -b \
-  -i database/create_vm_rs_indexes.sql
-```
-
-Scripts:
-
-- [`create_vm_benchmark_copies.sql`](database/create_vm_benchmark_copies.sql)
-- [`create_vm_rs_indexes.sql`](database/create_vm_rs_indexes.sql)
-
-`hp` deliberately remains eight unindexed heaps with no foreign keys.
-
-### Azure SQL Database
-
-The Azure copy has no `hp` schema. It reproduces the live eight-index
-rowstore design:
-
-```bash
-export SQL_SERVER='logical-server.database.windows.net'
-
-sqlcmd -S "$SQL_SERVER" -d tpchsf100 -U "$SQL_USER" -N -b \
-  -i database/create_azure_benchmark_copy.sql
-
-sqlcmd -S "$SQL_SERVER" -d tpchsf100 -U "$SQL_USER" -N -b \
-  -i database/create_azure_rs_indexes.sql
-```
-
-Scripts:
-
-- [`create_azure_benchmark_copy.sql`](database/create_azure_benchmark_copy.sql)
-- [`create_azure_rs_indexes.sql`](database/create_azure_rs_indexes.sql)
-
-### Optional standalone rowstore archive
-
-The public `tpchsf10_rowstore.bak` and `.bacpac` came from a standalone
-rowstore database derived from the VM columnstore database. It is an archival
-artifact, not the database used by the final benchmark. The original
-machine-specific `F:`/`G:` file paths were removed; this version uses the SQL
-Server instance's default data and log locations.
-
-Run, in order:
-
-1. [`archive/create_tpchsf10_rowstore.sql`](database/archive/create_tpchsf10_rowstore.sql)
-2. [`archive/copy_tpchsf10_rowstore.sql`](database/archive/copy_tpchsf10_rowstore.sql)
-3. [`archive/index_tpchsf10_rowstore.sql`](database/archive/index_tpchsf10_rowstore.sql)
-4. [`archive/validate_tpchsf10_rowstore.sql`](database/archive/validate_tpchsf10_rowstore.sql)
-
-## 3. Write and verify Blob `.bak` backups
-
-The exact backup scripts target the public `tpch` container. Blob write
-access still requires a short-lived SAS credential on the SQL Server
-instance.
-
-```bash
-export SQL_SERVER='sql-vm.example.net'
-export SQLCMD_TRUST_SERVER_CERTIFICATE=1
-read -rsp 'Container SAS: ' AZURE_STORAGE_SAS_TOKEN
-printf '\n'
-export AZURE_STORAGE_SAS_TOKEN
-
-./database/backups/configure_backup_credential.sh
-
-sqlcmd -S "$SQL_SERVER" -d master -U "$SQL_USER" -N -C -b \
-  -i database/backups/backup_tpchsf10_columnstore.sql
-
-sqlcmd -S "$SQL_SERVER" -d master -U "$SQL_USER" -N -C -b \
-  -i database/backups/backup_tpchsf10_rowstore.sql
-
-sqlcmd -S "$SQL_SERVER" -d master -U "$SQL_USER" -N -C -b \
-  -i database/backups/verify_tpchsf10_blob_backups.sql
-```
-
-After verification, remove the server credential and clear the token:
-
-```bash
-sqlcmd -S "$SQL_SERVER" -d master -U "$SQL_USER" -N -C -b -Q \
-  "DROP CREDENTIAL [https://tpcpublicstorage.blob.core.windows.net/tpch];"
-unset AZURE_STORAGE_SAS_TOKEN
-```
-
-Published backups:
-
-- [`tpchsf10_columnstore.bak`](https://tpcpublicstorage.blob.core.windows.net/tpch/tpchsf10_columnstore.bak)
-- [`tpchsf10_rowstore.bak`](https://tpcpublicstorage.blob.core.windows.net/tpch/tpchsf10_rowstore.bak)
-
-## 4. Export and publish BACPACs
-
-[`export_bacpac_to_blob.sh`](database/backups/export_bacpac_to_blob.sh)
-uses `sqlpackage` locally and `az storage blob upload --auth-mode login`.
-The caller needs Storage Blob Data Contributor (or equivalent) on the target
-container. No account key is read or cached by the script.
-
-```bash
-az login
-export SQLPACKAGE_BIN=/path/to/sqlpackage
-export AZURE_STORAGE_ACCOUNT=tpcpublicstorage
-export AZURE_STORAGE_CONTAINER=tpch
-
-./database/backups/export_bacpac_to_blob.sh tpchsf10_columnstore
-./database/backups/export_bacpac_to_blob.sh tpchsf10_rowstore
-```
-
-The helper validates the BACPAC ZIP, records a SHA-256 metadata value, uploads
-without overwrite, and checks the public Blob length and hash metadata. Set
-`OUTPUT_DIR`, `BACPAC_BLOB_PREFIX`, or `DELETE_LOCAL_AFTER_UPLOAD=1` as
-needed.
-
-Published BACPACs:
-
-- [`tpchsf10_columnstore.bacpac`](https://tpcpublicstorage.blob.core.windows.net/tpch/tpchsf10_columnstore.bacpac)
-- [`tpchsf10_rowstore.bacpac`](https://tpcpublicstorage.blob.core.windows.net/tpch/tpchsf10_rowstore.bacpac)
-
-## 5. Export Parquet with CETAS and publish adjacent DDL
-
-The canonical external-table data came from the standalone VM rowstore
-database. The columnstore source was also exported for comparison. Each
-destination prefix must be empty because CETAS does not overwrite output.
-
-```bash
-export SQL_SERVER='sql-vm.example.net'
-export SQLCMD_TRUST_SERVER_CERTIFICATE=1
-read -rsp 'Container SAS: ' AZURE_STORAGE_SAS_TOKEN
-printf '\n'
-export AZURE_STORAGE_SAS_TOKEN
-
-./parquet/export_parquet_to_blob.sh tpchsf10_rowstore
-./parquet/export_parquet_to_blob.sh tpchsf10_columnstore
-
-unset AZURE_STORAGE_SAS_TOKEN
-```
-
-The wrapper performs these steps:
-
-1. [`configure_cetas_credential.sh`](parquet/configure_cetas_credential.sh)
-   creates a temporary SAS credential, CETAS data source, and Parquet format.
-2. [`export_tpch_tables_parquet.sql`](parquet/export_tpch_tables_parquet.sql)
-   runs eight CETAS operations under `tpch_parquet/<database>/dbo.<table>/`.
-3. [`validate_tpch_parquet.sql`](parquet/validate_tpch_parquet.sql) reads every
-   exported table and compares its row count with the source.
-4. [`generate_tpch_schema.sql`](schemas/generate_tpch_schema.sql) produces one
-   root `_schema.sql` plus a table-only `_schema.sql` adjacent to each table's
-   Parquet files; Azure CLI uploads them with the same runtime SAS.
-5. [`cleanup_tpch_parquet_objects.sql`](parquet/cleanup_tpch_parquet_objects.sql)
-   removes the temporary external objects and scoped credential. It does not
-   drop a database master key because that key might predate this workflow.
-
-Public Parquet roots:
-
-- [`tpch_parquet/tpchsf10_rowstore/`](https://tpcpublicstorage.blob.core.windows.net/tpch/tpch_parquet/tpchsf10_rowstore/_schema.sql)
-- [`tpch_parquet/tpchsf10_columnstore/`](https://tpcpublicstorage.blob.core.windows.net/tpch/tpch_parquet/tpchsf10_columnstore/_schema.sql)
-
-## 6. Create anonymous public external tables
-
-Run these scripts in each final target database:
-
-```bash
 sqlcmd -S "$SQL_SERVER" -d "$SQL_DATABASE" -U "$SQL_USER" -N -b \
   -i parquet/create_tpch_parquet_resources.sql
 
@@ -309,71 +126,160 @@ sqlcmd -S "$SQL_SERVER" -d "$SQL_DATABASE" -U "$SQL_USER" -N -b \
   -i parquet/validate_tpch_parquet_external_tables.sql
 ```
 
-The scripts are:
+For a local SQL Server with a trusted development certificate, add `-C` to
+the three `sqlcmd` commands.
 
-- [`create_tpch_parquet_resources.sql`](parquet/create_tpch_parquet_resources.sql)
-- [`create_tpch_parquet_tables.sql`](parquet/create_tpch_parquet_tables.sql)
-- [`validate_tpch_parquet_external_tables.sql`](parquet/validate_tpch_parquet_external_tables.sql)
+The scripts create:
 
-No `DATABASE SCOPED CREDENTIAL` is associated with
-`TPCHParquetBlob`; anonymous container access is intentional.
+- `TPCHParquetBlob`, an external data source with no credential.
+- `TPCHParquetFormat`, a Parquet external file format.
+- Eight tables in `ext`.
 
-## 7. Generate and retain exact schema-only DDL
+Try a query:
 
-[`generate_tpch_schema.sql`](schemas/generate_tpch_schema.sql) reads internal
-tables, indexes, key constraints, trusted/disabled foreign-key state, external
-data sources, formats, and external tables. Run it in SQLCMD mode:
+```sql
+SELECT
+    l_shipmode,
+    COUNT_BIG(*) AS line_count
+FROM ext.lineitem
+GROUP BY l_shipmode
+ORDER BY l_shipmode;
+```
+
+Validate the complete public layout:
 
 ```bash
 sqlcmd -S "$SQL_SERVER" -d "$SQL_DATABASE" -U "$SQL_USER" -N -b \
-  -h -1 -W -w 65535 \
-  -v SCHEMA_MODE=full SCHEMA_FILTER='*' TABLE_FILTER='*' \
-  -i schemas/generate_tpch_schema.sql \
-  -o generated_schema.sql
+  -v LAYOUT=external TARGET_SCHEMA=ext \
+  -i database/validate_public_tpch_database.sql
 ```
 
-The exact final outputs are:
+## Option B: restore a public SQL Server backup
 
-- [`tpchsf10_columnstore_schema.sql`](schemas/tpchsf10_columnstore_schema.sql)
-  for the SQL Server VM.
-- [`tpchsf100_schema.sql`](schemas/tpchsf100_schema.sql) for Azure SQL.
-
-Public copies:
-
-- <https://tpcpublicstorage.blob.core.windows.net/tpch/tpch_schemas/tpchsf10_columnstore_schema.sql>
-- <https://tpcpublicstorage.blob.core.windows.net/tpch/tpch_schemas/tpchsf100_schema.sql>
-
-## 8. Validate the final layouts
-
-[`validate_tpch_demo_layout.sql`](database/validate_tpch_demo_layout.sql)
-checks schema/table counts, physical index types, exact `rs` index count, all
-10 trusted/enabled foreign keys, VM heap purity, internal column definitions,
-internal row counts and checksums, all external row counts and paths, and the
-anonymous external data source.
-
-VM:
+Download either physical layout. `--continue-at -` makes an interrupted
+download resumable:
 
 ```bash
-sqlcmd -S "$SQL_SERVER" -d tpchsf10_columnstore -U "$SQL_USER" -N -C -b \
-  -v HAS_HP=1 RS_INDEX_COUNT=14 \
-  -i database/validate_tpch_demo_layout.sql
+mkdir -p downloads
+
+curl --fail --location --continue-at - \
+  --output downloads/tpchsf10_columnstore.bak \
+  https://tpcpublicstorage.blob.core.windows.net/tpch/tpchsf10_columnstore.bak
+
+curl --fail --location --continue-at - \
+  --output downloads/tpchsf10_rowstore.bak \
+  https://tpcpublicstorage.blob.core.windows.net/tpch/tpchsf10_rowstore.bak
 ```
 
-Azure:
+Move the selected file to a path readable by the SQL Server service. First
+inspect its logical file names:
+
+```sql
+RESTORE FILELISTONLY
+FROM DISK = N'/var/opt/mssql/backup/tpchsf10_columnstore.bak';
+GO
+```
+
+Use the returned logical names in the restore:
+
+```sql
+RESTORE VERIFYONLY
+FROM DISK = N'/var/opt/mssql/backup/tpchsf10_columnstore.bak'
+WITH CHECKSUM;
+GO
+
+RESTORE DATABASE [tpchsf10_columnstore]
+FROM DISK = N'/var/opt/mssql/backup/tpchsf10_columnstore.bak'
+WITH
+    MOVE N'<logical-data-name>'
+        TO N'/var/opt/mssql/data/tpchsf10_columnstore.mdf',
+    MOVE N'<logical-log-name>'
+        TO N'/var/opt/mssql/data/tpchsf10_columnstore_log.ldf',
+    CHECKSUM,
+    RECOVERY,
+    STATS = 5;
+GO
+```
+
+Adjust paths for Windows or your SQL Server storage layout. Use the rowstore
+file and database name for the rowstore variant.
+
+Validate the restored database:
 
 ```bash
-sqlcmd -S "$SQL_SERVER" -d tpchsf100 -U "$SQL_USER" -N -b \
-  -v HAS_HP=0 RS_INDEX_COUNT=8 \
-  -i database/validate_tpch_demo_layout.sql
+# Columnstore backup
+sqlcmd -S "$SQL_SERVER" -d tpchsf10_columnstore -U "$SQL_USER" -N -b \
+  -v LAYOUT=columnstore TARGET_SCHEMA=dbo \
+  -i database/validate_public_tpch_database.sql
+
+# Rowstore backup
+sqlcmd -S "$SQL_SERVER" -d tpchsf10_rowstore -U "$SQL_USER" -N -b \
+  -v LAYOUT=rowstore TARGET_SCHEMA=dbo \
+  -i database/validate_public_tpch_database.sql
 ```
 
-The external count expectation is the canonical VM data set, including
-59,999,496 `lineitem` rows, even when validation runs in Azure.
+## Option C: import a public BACPAC
 
-## 9. Run the read-only workload
+Download one or both BACPACs:
+
+```bash
+mkdir -p downloads
+
+curl --fail --location --continue-at - \
+  --output downloads/tpchsf10_columnstore.bacpac \
+  https://tpcpublicstorage.blob.core.windows.net/tpch/tpchsf10_columnstore.bacpac
+
+curl --fail --location --continue-at - \
+  --output downloads/tpchsf10_rowstore.bacpac \
+  https://tpcpublicstorage.blob.core.windows.net/tpch/tpchsf10_rowstore.bacpac
+```
+
+Import the selected artifact. This example imports the columnstore BACPAC:
+
+```bash
+sqlpackage \
+  /Action:Import \
+  /SourceFile:"$PWD/downloads/tpchsf10_columnstore.bacpac" \
+  /TargetServerName:"$SQL_SERVER" \
+  /TargetDatabaseName:tpchsf10_columnstore \
+  /TargetUser:"$SQL_USER" \
+  /TargetPassword:"$SQLCMDPASSWORD" \
+  /TargetEncryptConnection:True \
+  /TargetTrustServerCertificate:False \
+  /p:CommandTimeout=0 \
+  /p:LongRunningCommandTimeout=0
+```
+
+For the rowstore layout, change the source file and target database name to
+`tpchsf10_rowstore`. For a local development SQL Server with a self-signed
+certificate, set `/TargetTrustServerCertificate:True` only after deciding to
+trust that server.
+
+Run the same validation commands shown in the backup section after import.
+
+## Add the public Parquet schema to an imported database
+
+You can add `ext` to either imported/restored database and compare local data
+with public Parquet:
+
+```bash
+export SQL_DATABASE='tpchsf10_columnstore'
+
+sqlcmd -S "$SQL_SERVER" -d "$SQL_DATABASE" -U "$SQL_USER" -N -b \
+  -i parquet/create_tpch_parquet_resources.sql
+
+sqlcmd -S "$SQL_SERVER" -d "$SQL_DATABASE" -U "$SQL_USER" -N -b \
+  -v TARGET_SCHEMA=ext SOURCE_PREFIX=tpchsf10_rowstore \
+  -i parquet/create_tpch_parquet_tables.sql
+```
+
+Both sources should report the public row counts above. The external tables
+always read the canonical 59,999,496-row `lineitem` sample.
+
+## Run the read-only workload
 
 [`tpch_readonly_workload.sql`](workload/tpch_readonly_workload.sql) contains
-five original read-only analytic queries:
+five original analytic queries:
 
 1. Shipping-mode summary.
 2. Monthly customer-segment orders.
@@ -381,69 +287,53 @@ five original read-only analytic queries:
 4. Supplier inventory value.
 5. Late-delivery analysis.
 
-These are not official TPC-H query texts. Every query uses `MAXDOP 4`.
-Server-side UTC timestamps surround each query, and the workload total is the
-sum of its five measured durations.
+Each query uses `MAXDOP 4`. Server-side UTC timestamps surround each query,
+and the workload total is the sum of the five measured durations.
 
-[`run_tpch_workload.sh`](workload/run_tpch_workload.sh) performs three
-measured runs per schema in rotated order:
+The runner performs three measured iterations and rotates the selected schema
+order. It does not flush caches. A bounded retry handles only recognized
+transient transport or database-resume failures; failed attempts are not
+measurements.
 
-```text
-run 1: dbo, rs, ext
-run 2: rs, ext, dbo
-run 3: ext, dbo, rs
-```
-
-There is no cache flush. The runner retries at most three times only for
-recognized transient transport/database-resume failures. Failed attempts are
-written to a temporary file and are never accepted as measurements.
-
-Run both platforms into the same raw-results directory:
+Run against one schema from a restored/imported database:
 
 ```bash
-# VM
-export SQL_SERVER='sql-vm.example.net'
 export SQL_DATABASE='tpchsf10_columnstore'
-export SQL_USER='demo_login'
 export PLATFORM_LABEL=vm
-export OUTPUT_DIR="$PWD/benchmark_raw"
+export TARGET_SCHEMAS='dbo'
+export OUTPUT_DIR="$PWD/results/columnstore"
 export SQLCMD_TRUST_SERVER_CERTIFICATE=1
-./workload/run_tpch_workload.sh
 
-# Azure
-export SQL_SERVER='logical-server.database.windows.net'
-export SQL_DATABASE='tpchsf100'
-export PLATFORM_LABEL=azure
-unset SQLCMD_TRUST_SERVER_CERTIFICATE
 ./workload/run_tpch_workload.sh
 ```
 
-Summarize the 18 successful run files:
+Run against public Parquet:
 
 ```bash
-python3 workload/summarize_tpch_workload.py \
-  benchmark_raw \
-  benchmark_summary
+export SQL_DATABASE='tpch_public_parquet'
+export TARGET_SCHEMAS='ext'
+export OUTPUT_DIR="$PWD/results/parquet"
+
+./workload/run_tpch_workload.sh
 ```
 
-The summarizer validates file completeness and stable result signatures, then
-writes:
+If a database contains both local and external data, use
+`TARGET_SCHEMAS='dbo ext'`; the runner rotates those two schemas across the
+three iterations. The default remains `dbo rs ext` for the original combined
+test layout.
 
-- [`tpch_benchmark_results.csv`](workload/tpch_benchmark_results.csv): raw
-  aggregated query/run rows.
-- [`tpch_benchmark_summary.csv`](workload/tpch_benchmark_summary.csv): total
-  median, minimum, maximum, mean, and relative median.
-- [`tpch_benchmark_query_summary.csv`](workload/tpch_benchmark_query_summary.csv):
-  per-query median and range.
+[`summarize_tpch_workload.py`](workload/summarize_tpch_workload.py) reproduces
+the bundled CSVs from the original complete set of 18 `vm`/`azure` run files.
+Those transient per-run text files are intentionally not committed.
 
-Raw transient `sqlcmd` logs are deliberately not committed.
+## Published sample results
 
-## Measured sample
+The original measured environments were:
 
 | Environment | Configuration |
 |---|---|
 | VM | SQL Server 2025 `17.0.4065.4`, 4 vCPU, 16 GB RAM |
-| Azure | General Purpose serverless `GP_S_Gen5_4`, 32 GB Free Limit maximum |
+| Azure | General Purpose serverless `GP_S_Gen5_4`, 32 GB maximum |
 
 | Platform | Schema | Median total (ms) | Min-max (ms) | Relative median vs `dbo` |
 |---|---|---:|---:|---:|
@@ -454,36 +344,18 @@ Raw transient `sqlcmd` logs are deliberately not committed.
 | Azure | `rs` | 162,012.317 | 161,880.321-184,136.773 | 12.248x |
 | Azure | `ext` | 28,002.765 | 27,810.244-53,781.392 | 2.117x |
 
-These values describe one environment-specific sample workload. They are not
-an audited or official TPC-H benchmark result, and VM-to-Azure timings are not
-directly comparable.
+These timings are environment-specific samples. Cross-platform timings are
+not directly comparable.
 
-## Public final artifacts
+## Repository contents
 
-| Artifact | Public Blob URL |
+| Folder | Contents |
 |---|---|
-| VM schema-only DDL | <https://tpcpublicstorage.blob.core.windows.net/tpch/tpch_schemas/tpchsf10_columnstore_schema.sql> |
-| Azure schema-only DDL | <https://tpcpublicstorage.blob.core.windows.net/tpch/tpch_schemas/tpchsf100_schema.sql> |
-| Workload SQL | <https://tpcpublicstorage.blob.core.windows.net/tpch/workload/tpch_readonly_workload.sql> |
-| Workload runner | <https://tpcpublicstorage.blob.core.windows.net/tpch/workload/run_tpch_workload.sh> |
-| Workload summarizer | <https://tpcpublicstorage.blob.core.windows.net/tpch/workload/summarize_tpch_workload.py> |
-| Raw aggregated results | <https://tpcpublicstorage.blob.core.windows.net/tpch/workload/tpch_benchmark_results.csv> |
-| Total summary | <https://tpcpublicstorage.blob.core.windows.net/tpch/workload/tpch_benchmark_summary.csv> |
-| Per-query summary | <https://tpcpublicstorage.blob.core.windows.net/tpch/workload/tpch_benchmark_query_summary.csv> |
+| [`database/`](database/) | Validation for public columnstore, rowstore, and Parquet layouts. |
+| [`parquet/`](parquet/) | Anonymous external data source, external tables, and row-count validation. |
+| [`schemas/`](schemas/) | Exact schema-only references from the completed SQL Server and Azure SQL environments. |
+| [`workload/`](workload/) | Read-only queries, runner, summarizer, aggregated results, and total/per-query summaries. |
 
-The same public container also hosts the top-level `.bak` and `.bacpac`
-artifacts and the
-[`tpch_parquet/`](https://tpcpublicstorage.blob.core.windows.net/tpch?restype=container&comp=list&prefix=tpch_parquet/)
-roots described above.
-
-## Sanitization and deliberate omissions
-
-- No password, SAS token, storage account key, authentication cache, or
-  credential-bearing command file is included.
-- Raw per-attempt workload logs, temporary Blob manifests, validation
-  manifests, and upload scratch files are excluded.
-- Redundant exploratory probes and machine-specific one-off copy helpers are
-  excluded. The supported archive sequence uses default SQL Server file
-  locations instead.
-- Generated schema DDL and the three final aggregated CSV artifacts are
-  retained byte-for-byte from the completed workflow.
+This folder contains only public-data consumption assets. It has no storage
+write path, publishing credentials, private service addresses, authentication
+caches, or generated data files.

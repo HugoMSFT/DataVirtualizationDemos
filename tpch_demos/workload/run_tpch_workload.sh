@@ -48,17 +48,41 @@ if [[ "${SQLCMD_TRUST_SERVER_CERTIFICATE:-0}" == "1" ]]; then
     sqlcmd_options+=(-C)
 fi
 
-runs=(
-    '1 dbo'
-    '1 rs'
-    '1 ext'
-    '2 rs'
-    '2 ext'
-    '2 dbo'
-    '3 ext'
-    '3 dbo'
-    '3 rs'
-)
+read -r -a target_schemas <<< "${TARGET_SCHEMAS:-dbo rs ext}"
+
+if [[ "${#target_schemas[@]}" == "0" ]]; then
+    printf 'TARGET_SCHEMAS must contain at least one schema.\n' >&2
+    exit 2
+fi
+
+seen_schemas=' '
+for schema_name in "${target_schemas[@]}"; do
+    case "$schema_name" in
+        dbo|rs|ext) ;;
+        *)
+            printf 'Unsupported schema in TARGET_SCHEMAS: %s\n' \
+                "$schema_name" >&2
+            exit 2
+            ;;
+    esac
+
+    if [[ "$seen_schemas" == *" $schema_name "* ]]; then
+        printf 'TARGET_SCHEMAS contains duplicate schema %s.\n' \
+            "$schema_name" >&2
+        exit 2
+    fi
+    seen_schemas+="$schema_name "
+done
+
+runs=()
+schema_count=${#target_schemas[@]}
+for iteration in 1 2 3; do
+    offset=$(( (iteration - 1) % schema_count ))
+    for ((position = 0; position < schema_count; position++)); do
+        schema_index=$(( (offset + position) % schema_count ))
+        runs+=("$iteration ${target_schemas[$schema_index]}")
+    done
+done
 
 for run in "${runs[@]}"; do
     read -r iteration schema_name <<< "$run"
