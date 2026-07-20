@@ -1,6 +1,10 @@
 # Data Virtualization Demos
 
-A collection of demos showcasing **Data Virtualization** capabilities in SQL — query external data sources (Parquet, CSV, etc.) directly using `OPENROWSET`, external tables, and related features without moving data.
+A collection of demos showcasing
+[**Data Virtualization**](https://learn.microsoft.com/en-us/sql/relational-databases/polybase/data-virtualization-guide?view=sql-server-ver17)
+capabilities in SQL: query external data sources such as Parquet and CSV
+directly using `OPENROWSET`, external tables, and related features without
+moving data.
 
 ## Demos
 
@@ -15,6 +19,14 @@ A collection of demos showcasing **Data Virtualization** capabilities in SQL —
 2. Provision the SQL target described by that demo.
 3. Run the scripts in the documented order.
 4. All source data is public; storage credentials are not required for reads.
+
+## Official Microsoft documentation
+
+- [Connect, query, and export data with PolyBase](https://learn.microsoft.com/en-us/sql/relational-databases/polybase/data-virtualization-guide?view=sql-server-ver17)
+- [PolyBase overview](https://learn.microsoft.com/en-us/sql/relational-databases/polybase/overview?view=sql-server-ver17)
+- [`CREATE EXTERNAL DATA SOURCE`](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-external-data-source-transact-sql?view=sql-server-ver17)
+- [`CREATE EXTERNAL FILE FORMAT`](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-external-file-format-transact-sql?view=sql-server-ver17)
+- [`CREATE EXTERNAL TABLE`](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-external-table-transact-sql?view=sql-server-ver17)
 
 ## Object naming convention
 

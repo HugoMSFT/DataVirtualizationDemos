@@ -84,6 +84,17 @@ row counts:
 | `orders` | 15,000,000 |
 | `lineitem` | 59,999,496 |
 
+## Official Microsoft documentation
+
+The following Microsoft Learn references describe the data-virtualization
+features and T-SQL objects used by this demo:
+
+- [Connect, query, and export data with PolyBase](https://learn.microsoft.com/en-us/sql/relational-databases/polybase/data-virtualization-guide?view=sql-server-ver17)
+- [PolyBase overview](https://learn.microsoft.com/en-us/sql/relational-databases/polybase/overview?view=sql-server-ver17)
+- [`CREATE EXTERNAL DATA SOURCE`](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-external-data-source-transact-sql?view=sql-server-ver17)
+- [`CREATE EXTERNAL FILE FORMAT`](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-external-file-format-transact-sql?view=sql-server-ver17)
+- [`CREATE EXTERNAL TABLE`](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-external-table-transact-sql?view=sql-server-ver17)
+
 ## Prerequisites
 
 Choose only the tools needed for your path:
