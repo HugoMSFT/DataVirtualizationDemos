@@ -363,6 +363,12 @@ The original measured environments were:
 | Azure | `rs` | 162,012.317 | 161,880.321-184,136.773 | 12.248x |
 | Azure | `ext` | 28,002.765 | 27,810.244-53,781.392 | 2.117x |
 
+### Schema Legend
+
+- **dbo** — Columnstore layout 
+- **ext** — External tables (Parquet / ABS virtualization)
+- **rs** — Rowstore layout
+
 These timings are environment-specific TPROC-H-derived sample workload results,
 not official TPC-H benchmark results. Cross-platform timings are not directly
 comparable.
